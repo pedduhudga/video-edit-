@@ -72,9 +72,9 @@
     <div class="w-full md:w-[450px] flex flex-col border-t md:border-t-0 md:border-r border-white/10 bg-[#0f0f11] z-20 shadow-2xl h-[55%] md:h-full shrink-0">
         <div class="p-4 md:p-5 border-b border-white/10 bg-[#0f0f11] shrink-0">
             <h1 class="text-lg md:text-xl font-black italic tracking-tighter text-white font-[Montserrat]">
-                VIRAL<span class="text-purple-500">STUDIO</span> 15.0
+                VIRAL<span class="text-purple-500">STUDIO</span> PRO
             </h1>
-            <p class="text-[9px] md:text-[10px] text-gray-500 font-bold uppercase tracking-widest">Advanced Universal Mobile Edition</p>
+            <p class="text-[9px] md:text-[10px] text-gray-500 font-bold uppercase tracking-widest">Motion Graphics & Particle Engine</p>
         </div>
 
         <div class="flex-1 overflow-y-auto p-4 md:p-5 space-y-6 custom-scroll">
@@ -137,21 +137,25 @@
                 
                 <textarea id="scriptInput" 
                     class="w-full bg-[#151517] border border-white/10 rounded-xl p-3 text-sm h-28 focus:border-purple-500 outline-none resize-none text-gray-200 font-medium placeholder-gray-600 leading-relaxed font-[Poppins] transition-all"
-                    placeholder="Type here...\nWord[key] = Image + Text\n(key) = Silent Image\n(circle)/(arrow) = Draw\n*Asterisks* = Highlight"></textarea>
+                    placeholder="Type here...\nWord[key] = Image + Text\n(key) = Silent Image\n(circle)/(arrow) = Draw\n*Asterisks* = Highlight & Sparks!"></textarea>
 
                 <select id="animSelect" onchange="STATE.animation = this.value" class="w-full bg-[#151517] text-[11px] border border-white/10 rounded-lg p-2 outline-none text-purple-300 font-bold focus:border-purple-500 cursor-pointer">
-                    <option value="elastic">🚀 Elastic Pop (Default)</option>
-                    <option value="slide">⬆️ Slide Up</option>
-                    <option value="glitch">⚡ Glitch</option>
-                    <option value="cinema">🎬 Cinema Fade</option>
-                    <option value="spin">🌪️ Spin In</option>
-                    <option value="zoom">🔎 Zoom Slam</option>
-                    <option value="drop">⬇️ Gravity Drop</option>
-                    <option value="blur">🌫️ Blur Reveal</option>
-                    <option value="shake">🫨 Shake Impact</option>
-                    <option value="flip">🔄 3D Flip</option>
-                    <option value="wave">🌊 Gentle Wave</option>
-                    <option value="mix" class="text-yellow-400">🔀 Mix (Random)</option>
+                    <optgroup label="Pro Motion Graphics">
+                        <option value="kinetic">💨 Kinetic Whip (New!)</option>
+                        <option value="elastic">🚀 Elastic Bounce</option>
+                        <option value="pop">💥 Back Pop</option>
+                        <option value="zoom">🔎 Zoom Slam + Shake</option>
+                        <option value="drop">⬇️ Gravity Drop + Shake</option>
+                    </optgroup>
+                    <optgroup label="Standard Transitions">
+                        <option value="slide">⬆️ Smooth Slide</option>
+                        <option value="glitch">⚡ Glitch</option>
+                        <option value="cinema">🎬 Cinema Fade</option>
+                        <option value="spin">🌪️ Spin In</option>
+                        <option value="blur">🌫️ Blur Reveal</option>
+                        <option value="wave">🌊 Gentle Wave</option>
+                        <option value="mix" class="text-yellow-400">🔀 Mix (Random)</option>
+                    </optgroup>
                 </select>
 
                 <div class="flex gap-2 items-center">
@@ -379,7 +383,7 @@
             format: { w: 360, h: 640, pad: 30, fontSize: 40 },
             isPlaying: false, objects: [], layout: [], wordIndex: 0,
             colors: { main: '#ffffff', high: '#ff3b3b' }, assets: {}, sfxEnabled: true,
-            animation: 'elastic', bgType: 'color', bgValue: '#000000',
+            animation: 'kinetic', bgType: 'color', bgValue: '#000000',
             isRecording: false, recognition: null,
             voiceMode: 'magic',
             recMode: 'scene', 
@@ -392,7 +396,9 @@
             isExporting: false,
             playbackProgress: 0,
             isFinishing: false,
-            dictationBaseline: ''
+            dictationBaseline: '',
+            particles: [],       // NEW: Motion Graphics Particle Engine
+            screenShake: 0       // NEW: High Impact Camera Shake
         };
 
         const paperTexture = new Image();
@@ -425,10 +431,40 @@
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent) || window.innerWidth < 768;
             if(isMobile) setVoiceMode('magic'); else setVoiceMode('tts');
             
+            document.getElementById('animSelect').value = 'kinetic';
+            
             loop();
         }
 
-        // --- SPEECH RECOGNITION (DICTATION FIX FOR REPEATING WORDS) ---
+        // --- NEW PARTICLE ENGINE FOR MOTION GRAPHICS ---
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x; this.y = y; this.color = color;
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 8 + 2;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed - 2; 
+                this.life = 1.0;
+                this.decay = Math.random() * 0.03 + 0.02;
+                this.size = Math.random() * 4 + 1;
+            }
+            update() {
+                this.x += this.vx; this.y += this.vy;
+                this.vy += 0.3; // Gravity
+                this.vx *= 0.95; // Friction
+                this.life -= this.decay;
+            }
+            draw(ctx) {
+                ctx.globalAlpha = Math.max(0, this.life);
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+            }
+        }
+
+        // --- SPEECH RECOGNITION (DICTATION FIX) ---
         function toggleDictation() {
             if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
                 return alert("Voice dictation is not supported on this browser.");
@@ -455,7 +491,6 @@
             };
 
             STATE.recognition.onresult = (event) => {
-                // Reconstruct the entire session's transcript from scratch every time to prevent duplicate appends
                 let sessionTranscript = '';
                 for (let i = 0; i < event.results.length; ++i) {
                     sessionTranscript += event.results[i][0].transcript;
@@ -788,7 +823,7 @@
             await new Promise(r => setTimeout(r, 100)); 
             await document.fonts.ready; 
 
-            STATE.objects = []; STATE.wordIndex = 0; STATE.playbackProgress = 0;
+            STATE.objects = []; STATE.particles = []; STATE.screenShake = 0; STATE.wordIndex = 0; STATE.playbackProgress = 0;
             const text = document.getElementById('scriptInput').value; STATE.layout = parseScript(text);
             if (STATE.layout.length === 0) { resetUI(); return; }
 
@@ -1026,60 +1061,89 @@
 
         function spawnItem(data) {
             STATE.objects.push(new VisualItem(data));
+            const isHighlight = data.text.includes('*');
+            
+            // NEW: Particle Engine Trigger!
+            if (isHighlight) {
+                for (let i = 0; i < 20; i++) {
+                    STATE.particles.push(new Particle(data.x + data.width/2, data.y, STATE.colors.high));
+                }
+            }
+
+            // NEW: Camera Shake Trigger!
+            if (STATE.animation === 'zoom') STATE.screenShake = 12;
+            if (STATE.animation === 'drop') STATE.screenShake = 8;
+            
             if (STATE.sfxEnabled) {
                 if (data.imgKey) playSound('whoosh');
-                else if (data.text.includes('*')) playSound('pop');
+                else if (isHighlight) playSound('pop');
                 else playSound('click');
             }
         }
+        
         function playSound(type) {
             const id = type === 'pop' ? 'sfxPop' : (type === 'whoosh' ? 'sfxWhoosh' : 'sfxClick');
             const audio = document.getElementById(id);
             if (audio) { audio.currentTime = 0; audio.volume = type==='click'?0.3:0.8; audio.play().catch(e=>{}); }
         }
 
+        // --- NEW: PRO ANIMATION EASING MATH ---
+        const easeOutExpo = x => x === 1 ? 1 : 1 - Math.pow(2, -10 * x);
+        const easeOutBack = x => { const c1 = 1.70158; const c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+        const easeOutElastic = x => x === 0 ? 0 : x === 1 ? 1 : Math.pow(2, -10 * x) * Math.sin((x * 10 - 0.75) * ((2 * Math.PI) / 3)) + 1;
+
         // --- VISUAL ITEM ---
         class VisualItem {
             constructor(data) {
                 this.data = data;
                 this.font = document.getElementById('fontSelect').value;
-                this.animType = STATE.animation === 'mix' ? ['elastic', 'slide', 'glitch', 'cinema', 'spin', 'zoom', 'drop', 'blur', 'shake', 'flip', 'wave'][Math.floor(Math.random()*11)] : STATE.animation;
-                this.progress = 0; this.scale = 0; this.opacity = 0; this.offsetY = 0;
+                this.animType = STATE.animation === 'mix' ? ['elastic', 'slide', 'glitch', 'cinema', 'spin', 'zoom', 'drop', 'blur', 'shake', 'flip', 'wave', 'kinetic', 'pop'][Math.floor(Math.random()*13)] : STATE.animation;
+                this.time = 0; // Pure time 0 to 1
+                
+                this.scale = 0; this.opacity = 0; this.offsetY = 0; this.offsetX = 0; this.skewX = 0;
                 this.rotation = (Math.random()-0.5)*0.05; this.blur = 0; this.glitchOffset = 0;
                 this.pathProgress = 0;
             }
             update() {
-                this.progress += 0.05; if(this.progress > 1) this.progress = 1;
+                this.time += 0.04; // Animation speed build in
+                if(this.time > 1) this.time = 1;
+                
+                let tExpo = easeOutExpo(this.time);
+                let tBack = easeOutBack(this.time);
+                let tElastic = easeOutElastic(this.time);
+
                 switch(this.animType) {
-                    case 'elastic': if(this.scale===0)this.scale=0.1; this.scale+=(1-this.scale)*0.2; this.opacity=Math.min(this.opacity+0.2,1); break;
-                    case 'slide': this.scale=1; this.offsetY=(1-this.progress)*40; this.opacity=this.progress; break;
-                    case 'glitch': this.scale=1; this.opacity=1; if(this.progress<0.3) this.glitchOffset=(Math.random()-0.5)*10; else this.glitchOffset=0; break;
-                    case 'cinema': this.scale=1.2-(this.progress*0.2); this.opacity=this.progress; break;
-                    case 'spin': this.scale=this.progress; this.opacity=this.progress; this.rotation=(1-this.progress)*Math.PI; break;
-                    case 'zoom': this.scale=3-(2*this.progress); if(this.scale<1)this.scale=1; this.opacity=this.progress; break;
-                    case 'drop': this.scale=1; this.opacity=this.progress; this.offsetY=(1-this.progress)*-100; break;
-                    case 'blur': this.scale=1; this.opacity=this.progress; this.blur=(1-this.progress)*10; break;
-                    case 'shake': this.scale=this.progress; this.opacity=1; if(this.progress<0.8) this.offsetY=(Math.random()-0.5)*20*(1-this.progress); else this.offsetY=0; break;
-                    case 'flip': this.opacity=1; this.scale=this.progress; break;
-                    case 'wave': this.scale=1; this.opacity=this.progress; this.offsetY=Math.sin(this.progress*Math.PI*2)*10*(1-this.progress); break;
+                    case 'elastic': this.scale = tElastic; this.opacity = Math.min(this.time * 5, 1); break;
+                    case 'kinetic': this.scale = 1; this.offsetX = (1 - tExpo) * -150; this.skewX = (1 - tExpo) * 0.5; this.opacity = tExpo; this.blur = (1 - tExpo) * 10; break;
+                    case 'pop': this.scale = tBack; this.opacity = Math.min(this.time * 5, 1); break;
+                    case 'zoom': this.scale = 3 - (2 * tExpo); this.opacity = tExpo; break;
+                    case 'drop': this.scale = 1; this.offsetY = (1 - tBack) * -100; this.opacity = tExpo; break;
+                    case 'slide': this.scale = 1; this.offsetY = (1 - tExpo) * 40; this.opacity = tExpo; break;
+                    case 'glitch': this.scale = 1; this.opacity = 1; if(this.time < 0.3) this.glitchOffset = (Math.random()-0.5)*10; else this.glitchOffset = 0; break;
+                    case 'cinema': this.scale = 1.2 - (this.time * 0.2); this.opacity = this.time; break;
+                    case 'spin': this.scale = tBack; this.opacity = this.time; this.rotation = (1 - tExpo) * Math.PI; break;
+                    case 'blur': this.scale = 1; this.opacity = this.time; this.blur = (1 - tExpo) * 10; break;
+                    case 'shake': this.scale = tExpo; this.opacity = 1; if(this.time < 0.8) this.offsetY = (Math.random()-0.5)*20*(1-this.time); else this.offsetY = 0; break;
+                    case 'flip': this.opacity = 1; this.scale = tBack; break;
+                    case 'wave': this.scale = 1; this.opacity = this.time; this.offsetY = Math.sin(this.time * Math.PI * 2) * 10 * (1 - this.time); break;
                 }
                 if (this.data.annotation && this.pathProgress < 1) this.pathProgress += 0.05;
             }
             draw(ctx) {
                 ctx.save();
-                let dx = this.data.x + this.data.width/2 + this.glitchOffset;
+                let dx = this.data.x + this.data.width/2 + this.glitchOffset + (this.offsetX || 0);
                 let dy = this.data.y + this.offsetY;
                 
                 const isHighlight = this.data.text.includes('*');
                 let currentScale = this.scale;
-                
-                // Pop effect for highlight
                 if (isHighlight) currentScale *= 1.15; 
                 
                 ctx.translate(dx, dy);
                 ctx.rotate(this.rotation);
                 ctx.scale(currentScale, currentScale);
+                if (this.skewX) ctx.transform(1, 0, this.skewX, 1, 0, 0); // Apply Pro Skew
                 ctx.translate(-this.data.width/2, 0); 
+                
                 ctx.globalAlpha = this.opacity;
                 if (this.blur > 0.1) ctx.filter = `blur(${this.blur}px)`;
 
@@ -1087,10 +1151,9 @@
                     ctx.font = `900 ${STATE.format.fontSize}px '${this.font}'`;
                     ctx.textBaseline = "middle";
                     
-                    // Fixed Highlight Logic (Draw Stroke first, then Colored fill)
                     if (isHighlight) {
                         ctx.fillStyle = STATE.colors.high;
-                        ctx.shadowColor = STATE.colors.high; // Glowing shadow
+                        ctx.shadowColor = STATE.colors.high;
                         ctx.shadowBlur = 15;
                     } else {
                         ctx.fillStyle = STATE.colors.main;
@@ -1146,6 +1209,13 @@
 
         function loop() {
             ctx.clearRect(0, 0, canvas.width, canvas.height); 
+            ctx.save();
+            
+            // CAMERA SHAKE FX
+            if (STATE.screenShake > 0.5) {
+                ctx.translate((Math.random() - 0.5) * STATE.screenShake, (Math.random() - 0.5) * STATE.screenShake);
+                STATE.screenShake *= 0.85; // dampening
+            }
             
             if (STATE.bgType === 'color') {
                 ctx.fillStyle = STATE.bgValue;
@@ -1170,9 +1240,14 @@
                 ctx.drawImage(getNoiseCanvas(canvas.width, canvas.height), 0, 0);
             }
 
+            // Draw Objects
             ctx.scale(SCALE, SCALE);
             STATE.objects.forEach(o => { o.update(); o.draw(ctx); });
-            ctx.setTransform(1,0,0,1,0,0);
+            
+            // Draw Particles!
+            STATE.particles.forEach((p, i) => { p.update(); p.draw(ctx); if(p.life <= 0) STATE.particles.splice(i, 1); });
+
+            ctx.restore();
             requestAnimationFrame(loop);
         }
 
