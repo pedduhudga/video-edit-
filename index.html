@@ -428,7 +428,7 @@
             loop();
         }
 
-        // --- SPEECH RECOGNITION (DICTATION FIX) ---
+        // --- SPEECH RECOGNITION (DICTATION FIX FOR REPEATING WORDS) ---
         function toggleDictation() {
             if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
                 return alert("Voice dictation is not supported on this browser.");
@@ -444,6 +444,7 @@
             STATE.recognition.interimResults = true;
             STATE.recognition.lang = document.getElementById('dictationLang').value || 'en-US';
 
+            // Store strictly what was in the box before this session started
             STATE.dictationBaseline = textArea.value;
 
             STATE.recognition.onstart = () => {
@@ -455,18 +456,28 @@
             };
 
             STATE.recognition.onresult = (event) => {
-                let sessionTranscript = '';
-                for (let i = 0; i < event.results.length; ++i) {
+                let finalChunk = '';
+                let interimChunk = '';
+                
+                // Only process the chunks that have changed in this event
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
                     if (event.results[i].isFinal) {
-                        sessionTranscript += event.results[i][0].transcript;
+                        finalChunk += event.results[i][0].transcript;
+                    } else {
+                        interimChunk += event.results[i][0].transcript;
                     }
                 }
                 
-                if (sessionTranscript) {
-                    const needsSpace = STATE.dictationBaseline.length > 0 && !STATE.dictationBaseline.endsWith(' ') && !STATE.dictationBaseline.endsWith('\n');
-                    textArea.value = STATE.dictationBaseline + (needsSpace ? ' ' : '') + sessionTranscript;
-                    textArea.scrollTop = textArea.scrollHeight;
+                // If we get a final chunk, permanently append it to the baseline
+                if (finalChunk) {
+                    let pad = (STATE.dictationBaseline.length > 0 && !STATE.dictationBaseline.endsWith(' ') && !STATE.dictationBaseline.endsWith('\n') && !finalChunk.startsWith(' ')) ? ' ' : '';
+                    STATE.dictationBaseline += pad + finalChunk;
                 }
+                
+                // Show the permanent baseline + the temporary interim chunk being guessed right now
+                let padInt = (STATE.dictationBaseline.length > 0 && !STATE.dictationBaseline.endsWith(' ') && !STATE.dictationBaseline.endsWith('\n') && !interimChunk.startsWith(' ')) ? ' ' : '';
+                textArea.value = STATE.dictationBaseline + (interimChunk ? padInt + interimChunk : '');
+                textArea.scrollTop = textArea.scrollHeight;
             };
 
             STATE.recognition.onend = () => {
@@ -827,59 +838,73 @@
         // The Engine that fixes the speed synchronization issue using precise AudioContext Duration
         async function playContinuous() {
             if (!STATE.continuousBlob) { 
-                alert("No audio generated! Please generate or record audio first."); stopPreview(); return; 
+                let msg = "No audio found!";
+                if(STATE.voiceMode === 'eleven') msg = "Generate ElevenLabs Audio first!";
+                else if(STATE.voiceMode === 'rec') msg = "Record Single Take first!";
+                else if(STATE.voiceMode === 'upload') msg = "Upload an audio file first!";
+                
+                alert(msg); stopPreview(); return; 
             }
             
-            const audioUrl = URL.createObjectURL(STATE.continuousBlob);
-            const audio = new Audio(audioUrl);
+            const audio = new Audio(URL.createObjectURL(STATE.continuousBlob));
             STATE.currentAudio = audio;
 
-            let exactDurationMs = 0;
-            try {
-                // Decode AudioData to get flawless exact duration even for concatenated/mobile blob files
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const arrayBuffer = await STATE.continuousBlob.arrayBuffer();
-                const decodedData = await audioCtx.decodeAudioData(arrayBuffer);
-                exactDurationMs = decodedData.duration * 1000;
-            } catch(e) {
-                // Fallback if decode fails
-                audio.currentTime = 1e10;
-                await new Promise(r => {
+            audio.onloadedmetadata = () => {
+                if(audio.duration === Infinity || isNaN(audio.duration)) {
+                    audio.currentTime = 1e10; 
                     audio.ontimeupdate = () => {
-                        exactDurationMs = audio.duration * 1000;
                         audio.ontimeupdate = null;
-                        r();
+                        const durSec = audio.duration;
+                        audio.currentTime = 0;
+                        setTimeout(() => startSyncPlayback(durSec), 50);
                     };
-                });
-                audio.currentTime = 0;
-            }
-
-            // Sync math
-            const allItems = STATE.layout;
-            let totalWeight = 0; allItems.forEach(i => { if (!i.isBreak) totalWeight += (i.cleanText ? i.cleanText.length : 0) + 3; });
-            const timePerWeight = exactDurationMs / (totalWeight || 1);
-            
-            let timeline = []; let currentTime = 0;
-            allItems.forEach(item => {
-                if (item.isBreak) { timeline.push({ type: 'break', time: currentTime }); } 
-                else { timeline.push({ type: 'word', item: item, time: currentTime }); currentTime += ((item.cleanText ? item.cleanText.length : 0) + 3) * timePerWeight; }
-            });
-
-            audio.play(); let currentIndex = 0;
-            function syncLoop() {
-                if (!STATE.isPlaying || !STATE.currentAudio) return;
-                const audioTime = audio.currentTime * 1000;
-                STATE.playbackProgress = (audio.currentTime / audio.duration) * 100;
-                
-                while(currentIndex < timeline.length && audioTime >= timeline[currentIndex].time) {
-                    const event = timeline[currentIndex];
-                    if (event.type === 'break') STATE.objects = []; else spawnItem(event.item);
-                    currentIndex++;
+                } else {
+                    startSyncPlayback(audio.duration);
                 }
-                if (currentIndex < timeline.length) STATE.animTimer = requestAnimationFrame(syncLoop);
+            };
+
+            function startSyncPlayback(durationSec) {
+                const durationMs = durationSec * 1000;
+                const allItems = STATE.layout;
+                
+                let totalWeight = 0;
+                allItems.forEach(i => {
+                    if (!i.isBreak) totalWeight += (i.cleanText ? i.cleanText.length : 0) + 3;
+                });
+                
+                const timePerWeight = durationMs / (totalWeight || 1);
+                
+                let timeline = [];
+                let currentTime = 0;
+                allItems.forEach(item => {
+                    if (item.isBreak) {
+                        timeline.push({ type: 'break', time: currentTime });
+                    } else {
+                        timeline.push({ type: 'word', item: item, time: currentTime });
+                        currentTime += ((item.cleanText ? item.cleanText.length : 0) + 3) * timePerWeight;
+                    }
+                });
+
+                audio.play();
+                let currentIndex = 0;
+
+                function syncLoop() {
+                    if (!STATE.isPlaying || !STATE.currentAudio) return;
+                    const audioTime = audio.currentTime * 1000;
+                    STATE.playbackProgress = (audio.currentTime / audio.duration) * 100;
+                    
+                    while(currentIndex < timeline.length && audioTime >= timeline[currentIndex].time) {
+                        const event = timeline[currentIndex];
+                        if (event.type === 'break') STATE.objects = []; else spawnItem(event.item);
+                        currentIndex++;
+                    }
+                    if (currentIndex < timeline.length) STATE.animTimer = requestAnimationFrame(syncLoop);
+                }
+                STATE.animTimer = requestAnimationFrame(syncLoop);
+                audio.onended = finishPlayback;
             }
-            STATE.animTimer = requestAnimationFrame(syncLoop);
-            audio.onended = finishPlayback;
+            
+            audio.load(); 
         }
 
         async function playSceneSequence(sceneIdx) {
