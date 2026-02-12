@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viral Studio 15.0 - Voice Dictation & Full Suite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FONTS -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&family=Noto+Sans+Kannada:wght@700;900&family=Noto+Serif+Kannada:wght@700;900&family=Baloo+Tamma+2:wght@600;800&family=Hubballi&family=Tiro+Kannada:ital@0;1&family=Anek+Kannada:wght@600;800&family=Poppins:wght@700;900&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Poppins', 'Segoe UI Emoji', sans-serif; background-color: #050505; color: #fff; overflow: hidden; }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #111; }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 10px; }
+        
+        input[type="file"] { display: none; }
+        .active-format { border-color: #a855f7; color: white; background: rgba(168, 85, 247, 0.1); }
+        .transition-all-smooth { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        .color-wrapper { position: relative; width: 24px; height: 24px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); overflow: hidden; cursor: pointer; }
+        .color-wrapper input { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; opacity: 0; cursor: pointer; }
+        
+        .asset-chip { display: flex; align-items: center; gap: 5px; background: #222; padding: 2px 8px; border-radius: 12px; border: 1px solid #333; font-size: 10px; }
+        .asset-chip img { width: 16px; height: 16px; object-fit: cover; border-radius: 4px; }
+
+        .scanlines {
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
+            background-size: 100% 4px; pointer-events: none;
+        }
+
+        .noise-overlay {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.1'/%3E%3C/svg%3E");
+            opacity: 0.15; pointer-events: none;
+        }
+        
+        /* Pulse animation for recording */
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .recording-pulse { animation: pulse-red 1.5s infinite; border-color: #ef4444 !important; }
+        
+        .tab-active { color: #a855f7; border-bottom: 2px solid #a855f7; }
+        .tab-inactive { color: #6b7280; border-bottom: 2px solid transparent; }
+        
+        .sub-tab-active { background: rgba(168, 85, 247, 0.2); color: #e9d5ff; border: 1px solid #a855f7; }
+        .sub-tab-inactive { background: rgba(255, 255, 255, 0.05); color: #9ca3af; border: 1px solid transparent; }
+
+        /* Scene Item Styles */
+        .scene-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px; background: #1a1a1c; border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px; margin-bottom: 4px;
+        }
+        .scene-text {
+            font-size: 10px; color: #ccc; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-right: 10px;
+        }
+        .rec-btn-small {
+            width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            border: 1px solid rgba(255,255,255,0.2); transition: all 0.2s;
+        }
+        .rec-btn-small:hover { background: rgba(255,255,255,0.1); }
+        .rec-active { background: #ef4444 !important; border-color: #ef4444 !important; animation: pulse-red 1s infinite; }
+        .play-btn-small { color: #4ade80; }
+        .del-btn-small { color: #ef4444; }
+    </style>
+</head>
+<body class="flex flex-col-reverse md:flex-row h-[100dvh] w-screen bg-[#050505] text-white overflow-hidden">
+
+    <!-- SIDEBAR -->
+    <div class="w-full md:w-[450px] flex flex-col border-t md:border-t-0 md:border-r border-white/10 bg-[#0f0f11] z-20 shadow-2xl h-[55%] md:h-full shrink-0">
+        <div class="p-4 md:p-5 border-b border-white/10 bg-[#0f0f11] shrink-0">
+            <h1 class="text-lg md:text-xl font-black italic tracking-tighter text-white font-[Montserrat]">
+                VIRAL<span class="text-purple-500">STUDIO</span> 15.0
+            </h1>
+            <p class="text-[9px] md:text-[10px] text-gray-500 font-bold uppercase tracking-widest">Voice Dictation • Auto Sync • Full Animation Suite</p>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 md:p-5 space-y-6 custom-scroll">
+
+            <!-- 1. FORMAT & BACKGROUND -->
+            <div class="space-y-3">
+                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                    <i data-lucide="layout" class="w-3 h-3"></i> 1. Format & Background
+                </label>
+                <div class="flex flex-wrap gap-2 mb-2">
+                    <button onclick="setFormat('9:16')" id="fmt916" class="flex-1 p-2 rounded-lg border border-white/10 text-[10px] font-bold text-gray-400 hover:bg-white/5 transition active-format">📱 9:16</button>
+                    <button onclick="setFormat('4:3')" id="fmt43" class="flex-1 p-2 rounded-lg border border-white/10 text-[10px] font-bold text-gray-400 hover:bg-white/5 transition">📺 4:3</button>
+                    <button onclick="setFormat('1:1')" id="fmt11" class="flex-1 p-2 rounded-lg border border-white/10 text-[10px] font-bold text-gray-400 hover:bg-white/5 transition">🔲 1:1</button>
+                </div>
+
+                <div class="p-3 bg-[#151517] rounded-xl border border-white/5 space-y-3">
+                    <div class="grid grid-cols-5 gap-2">
+                        <div class="col-span-1 relative group aspect-square">
+                            <input type="color" id="bgColorPicker" value="#000000" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" oninput="setBackground('color', this.value)">
+                            <div class="w-full h-full rounded-lg border border-white/20 flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-900 group-hover:border-purple-500 transition">
+                                <i data-lucide="palette" class="w-4 h-4 text-white"></i>
+                            </div>
+                        </div>
+                        <button onclick="setBackground('color', '#000000')" class="aspect-square rounded-lg bg-black border border-white/20 hover:scale-105 transition"></button>
+                        <button onclick="setBackground('color', '#ffffff')" class="aspect-square rounded-lg bg-white border border-white/20 hover:scale-105 transition"></button>
+                        <button onclick="setBackground('image', 'https://www.transparenttextures.com/patterns/cream-paper.png')" class="aspect-square rounded-lg border border-white/20 hover:scale-105 transition relative overflow-hidden">
+                            <img src="https://www.transparenttextures.com/patterns/cream-paper.png" class="w-full h-full object-cover opacity-50">
+                        </button>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="document.getElementById('bgImgUpload').click()" class="flex-1 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] flex items-center justify-center gap-2 transition">
+                            <i data-lucide="image" class="w-3 h-3"></i> Bg Img
+                        </button>
+                        <button onclick="document.getElementById('bgVidUpload').click()" class="flex-1 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] flex items-center justify-center gap-2 transition">
+                            <i data-lucide="video" class="w-3 h-3"></i> Bg Vid
+                        </button>
+                    </div>
+                    <input type="file" id="bgImgUpload" accept="image/*" onchange="handleBgUpload(this, 'image')">
+                    <input type="file" id="bgVidUpload" accept="video/*" onchange="handleBgUpload(this, 'video')">
+                </div>
+            </div>
+
+            <!-- 2. SCRIPT & DICTATION -->
+            <div class="space-y-3">
+                <div class="flex justify-between items-end">
+                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                        <i data-lucide="type" class="w-3 h-3"></i> 2. Script & Dictation
+                    </label>
+                    <div class="flex gap-2">
+                        <select id="dictationLang" onchange="updateDictationLang()" class="bg-[#151517] text-[10px] border border-white/10 rounded-lg p-1 text-gray-400 outline-none cursor-pointer hover:border-purple-500 transition">
+                            <option value="en-US">🇺🇸 Eng</option>
+                            <option value="kn-IN">🇮🇳 Kan</option>
+                            <option value="hi-IN">🇮🇳 Hin</option>
+                        </select>
+                        <button onclick="toggleDictation()" id="micBtn" class="text-[10px] px-3 py-1 bg-white/5 text-gray-300 border border-white/10 rounded-full hover:bg-white/10 flex items-center gap-1.5 transition">
+                            <i data-lucide="mic" class="w-3 h-3"></i> Speak
+                        </button>
+                    </div>
+                </div>
+                
+                <textarea id="scriptInput" 
+                    class="w-full bg-[#151517] border border-white/10 rounded-xl p-3 text-sm h-28 focus:border-purple-500 outline-none resize-none text-gray-200 font-medium placeholder-gray-600 leading-relaxed font-[Poppins] transition-all"
+                    placeholder="Type here or Click 'Speak'...\nWord[key] = Image + Text\n(key) = Silent Image\n(circle)/(arrow) = Draw\n*Asterisks* = Highlight"></textarea>
+
+                <!-- RESTORED ANIMATION DROPDOWN -->
+                <select id="animSelect" onchange="STATE.animation = this.value" class="w-full bg-[#151517] text-[11px] border border-white/10 rounded-lg p-2 outline-none text-purple-300 font-bold focus:border-purple-500 cursor-pointer">
+                    <option value="elastic">🚀 Elastic Pop (Default)</option>
+                    <option value="slide">⬆️ Slide Up</option>
+                    <option value="glitch">⚡ Glitch</option>
+                    <option value="cinema">🎬 Cinema Fade</option>
+                    <option value="spin">🌪️ Spin In</option>
+                    <option value="zoom">🔎 Zoom Slam</option>
+                    <option value="drop">⬇️ Gravity Drop</option>
+                    <option value="blur">🌫️ Blur Reveal</option>
+                    <option value="shake">🫨 Shake Impact</option>
+                    <option value="flip">🔄 3D Flip</option>
+                    <option value="wave">🌊 Gentle Wave</option>
+                    <option value="mix" class="text-yellow-400">🔀 Mix (Random)</option>
+                </select>
+
+                <div class="flex gap-2 items-center">
+                    <select id="fontSelect" class="flex-1 bg-[#151517] text-[11px] border border-white/10 rounded-lg p-2 outline-none text-gray-300">
+                        <optgroup label="Kannada">
+                            <option value="Noto Sans Kannada">Noto Sans</option>
+                            <option value="Noto Serif Kannada">Noto Serif</option>
+                            <option value="Baloo Tamma 2">Baloo Tamma</option>
+                            <option value="Hubballi">Hubballi</option>
+                            <option value="Tiro Kannada">Tiro Kannada</option>
+                            <option value="Anek Kannada">Anek Kannada</option>
+                        </optgroup>
+                        <optgroup label="English">
+                            <option value="Montserrat">Montserrat</option>
+                            <option value="Poppins">Poppins</option>
+                            <option value="Permanent Marker">Marker</option>
+                        </optgroup>
+                        <optgroup label="My Fonts" id="customFontGroup"></optgroup>
+                    </select>
+                    <button onclick="document.getElementById('fontUpload').click()" class="p-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10" title="Upload Font"><i data-lucide="upload-cloud" class="w-4 h-4"></i></button>
+                    <input type="file" id="fontUpload" accept=".ttf,.otf,.woff" onchange="handleFontUpload(this)">
+                    <div class="color-wrapper" title="Text Color"><div class="w-full h-full bg-white" id="mainColorPreview" style="background-color: #ffffff;"></div><input type="color" value="#ffffff" oninput="updateColor('main', this.value)" onchange="updateColor('main', this.value)"></div>
+                    <div class="color-wrapper" title="Highlight Color"><div class="w-full h-full bg-red-500" id="highColorPreview" style="background-color: #ff3b3b;"></div><input type="color" value="#ff3b3b" oninput="updateColor('high', this.value)" onchange="updateColor('high', this.value)"></div>
+                </div>
+            </div>
+
+            <!-- 3. OVERLAY & ASSETS -->
+            <div class="space-y-3">
+                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                    <i data-lucide="image" class="w-3 h-3"></i> 3. Assets & Effects
+                </label>
+                <div class="grid grid-cols-2 gap-2">
+                    <select id="textureSelect" onchange="updateTexture()" class="bg-[#151517] border border-white/10 rounded-lg p-2 text-xs text-white outline-none">
+                        <option value="none">No Overlay</option>
+                        <option value="paper">📄 Paper Texture</option>
+                        <option value="crt">📺 CRT Scanlines</option>
+                        <option value="noise">🌫️ Film Noise</option>
+                    </select>
+                    <button onclick="toggleSFX()" id="sfxBtn" class="bg-green-500/10 border border-green-500/30 text-green-400 rounded-lg p-2 text-xs font-bold flex items-center justify-center gap-2 transition">
+                        <i data-lucide="volume-2" class="w-3 h-3"></i> SFX: ON
+                    </button>
+                </div>
+                <div class="flex gap-2">
+                    <input type="text" id="assetName" placeholder="Keyword" class="flex-1 bg-[#151517] border border-white/10 rounded px-2 text-xs">
+                    <button onclick="document.getElementById('assetUpload').click()" class="bg-white/10 rounded px-3 py-1 text-xs border border-white/10">Upload</button>
+                    <input type="file" id="assetUpload" accept="image/*" onchange="handleAssetUpload(this)">
+                </div>
+                <div id="assetList" class="flex flex-wrap gap-2"></div>
+            </div>
+
+            <!-- 4. VOICE (UPDATED) -->
+            <div class="space-y-2">
+                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                    <i data-lucide="mic-2" class="w-3 h-3"></i> 4. Narrator / Voiceover
+                </label>
+                <div class="bg-[#151517] p-3 rounded-xl border border-white/10 space-y-2">
+                    <!-- Tabs -->
+                    <div class="flex mb-2 border-b border-white/5">
+                        <button onclick="setVoiceMode('tts')" id="btnModeTTS" class="flex-1 pb-2 text-[10px] font-bold transition tab-active">🤖 AI</button>
+                        <button onclick="setVoiceMode('rec')" id="btnModeRec" class="flex-1 pb-2 text-[10px] font-bold transition tab-inactive">🎙️ Me</button>
+                        <button onclick="setVoiceMode('eleven')" id="btnModeEleven" class="flex-1 pb-2 text-[10px] font-bold transition tab-inactive text-purple-400">🧪 ElevenLabs</button>
+                        <button onclick="setVoiceMode('upload')" id="btnModeUpload" class="flex-1 pb-2 text-[10px] font-bold transition tab-inactive">📁 Upload</button>
+                    </div>
+
+                    <!-- TTS Controls -->
+                    <div id="ttsControls" class="space-y-2">
+                        <div class="flex items-center gap-2">
+                            <select id="voiceSelect" class="flex-1 bg-black border border-white/10 rounded text-xs text-white p-2"></select>
+                            <button onclick="loadVoices()" class="bg-white/5 border border-white/10 p-2 rounded hover:bg-white/10" title="Refresh Voices"><i data-lucide="refresh-cw" class="w-3 h-3"></i></button>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[9px] text-gray-500">SPD</span>
+                            <input type="range" id="speedRange" min="0.8" max="1.5" step="0.1" value="1.0" class="flex-1 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                        </div>
+                    </div>
+
+                    <!-- Recorder Controls -->
+                    <div id="recControls" class="hidden space-y-2">
+                        <!-- REC SUB-MODE TABS -->
+                        <div class="flex gap-2 mb-2">
+                            <button onclick="setRecSubMode('scene')" id="subModeScene" class="flex-1 py-1 text-[9px] rounded-md transition sub-tab-active">Scene-by-Scene</button>
+                            <button onclick="setRecSubMode('continuous')" id="subModeCont" class="flex-1 py-1 text-[9px] rounded-md transition sub-tab-inactive">Single Take</button>
+                        </div>
+
+                        <!-- SCENE UI -->
+                        <div id="sceneUI" class="space-y-2">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-[9px] text-gray-400 font-bold uppercase">Scene List</span>
+                                <button onclick="generateSceneList()" class="text-[9px] text-purple-400 hover:text-purple-300">Refresh ↻</button>
+                            </div>
+                            <div id="sceneListContainer" class="max-h-[150px] overflow-y-auto space-y-1 custom-scroll">
+                                <div class="text-center text-[10px] text-gray-500 py-4">Click "Refresh" to load script lines.</div>
+                            </div>
+                        </div>
+
+                        <!-- CONTINUOUS UI -->
+                        <div id="continuousUI" class="hidden space-y-2">
+                             <!-- Prompter -->
+                             <div id="prompterContainer" class="hidden bg-[#1a1a1c] p-3 rounded-lg border border-white/10 mb-2">
+                                <p class="text-[9px] text-gray-500 uppercase font-bold mb-1">Script to Read:</p>
+                                <div id="prompterText" class="text-sm font-medium text-white leading-relaxed whitespace-pre-wrap h-32 overflow-y-auto custom-scroll"></div>
+                             </div>
+
+                             <div class="p-3 bg-black/20 rounded-lg border border-white/5 text-center space-y-2">
+                                <div class="text-[10px] text-gray-400 mb-2">Record entire script in one go. <br>Animation speed will auto-sync.</div>
+                                
+                                <div class="flex gap-2">
+                                    <button id="contRecBtn" onclick="toggleContinuousRecord()" class="flex-1 py-3 rounded-xl bg-red-600/20 text-red-500 border border-red-600/50 hover:bg-red-600 hover:text-white transition font-bold flex items-center justify-center gap-2">
+                                        <i data-lucide="mic" class="w-4 h-4"></i> RECORD
+                                    </button>
+                                    <button id="contPauseBtn" onclick="togglePauseCont()" class="hidden w-1/3 py-3 rounded-xl bg-yellow-600/20 text-yellow-500 border border-yellow-600/50 hover:bg-yellow-600 hover:text-white transition font-bold flex items-center justify-center gap-2">
+                                        <i data-lucide="pause" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                                
+                                <div id="contAudioPlayer" class="hidden flex items-center gap-2 mt-2">
+                                    <audio id="contAudioEl" controls class="h-8 flex-1 w-full"></audio>
+                                    <button onclick="deleteContinuousAudio()" class="p-2 text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                </div>
+                             </div>
+                        </div>
+                    </div>
+
+                    <!-- ELEVENLABS CONTROLS -->
+                    <div id="elevenControls" class="hidden space-y-2">
+                        <!-- Config -->
+                        <div class="flex gap-2">
+                            <input type="password" id="elevenApiKey" placeholder="Paste API Key" class="flex-1 bg-black border border-white/10 rounded px-2 text-[10px] h-8">
+                            <button onclick="saveElevenKey()" class="bg-purple-600/20 text-purple-400 border border-purple-600/50 px-3 rounded text-[10px] font-bold hover:bg-purple-600 hover:text-white transition">Save</button>
+                        </div>
+
+                        <!-- Voice Select -->
+                        <div class="flex gap-2">
+                            <select id="elevenVoiceSelect" class="flex-1 bg-black border border-white/10 rounded px-2 text-[10px] h-8 text-gray-300">
+                                <option value="">Select Voice...</option>
+                            </select>
+                            <button onclick="fetchElevenVoices()" class="bg-white/5 border border-white/10 px-2 rounded hover:bg-white/10" title="Refresh Voices"><i data-lucide="refresh-cw" class="w-3 h-3"></i></button>
+                        </div>
+
+                        <!-- Clone Toggle -->
+                        <details class="group">
+                            <summary class="text-[9px] text-purple-400 cursor-pointer list-none font-bold hover:text-purple-300 mb-1 flex items-center gap-1"><i data-lucide="plus-circle" class="w-3 h-3"></i> Clone a Voice</summary>
+                            <div class="p-2 bg-purple-900/10 border border-purple-500/20 rounded-lg space-y-2 mt-1">
+                                <input type="text" id="cloneName" placeholder="Voice Name" class="w-full bg-black border border-white/10 rounded px-2 text-[10px] h-7">
+                                <input type="file" id="cloneFile" accept="audio/*" class="text-[9px] text-gray-400">
+                                <button onclick="createElevenClone()" class="w-full bg-purple-600 text-white text-[10px] font-bold py-1 rounded hover:bg-purple-500">Create Clone</button>
+                            </div>
+                        </details>
+
+                        <!-- Controls -->
+                        <div class="grid grid-cols-2 gap-2 text-[9px] text-gray-400">
+                            <div>Stability <input type="range" id="elStability" min="0" max="1" step="0.1" value="0.5" class="w-full h-1 bg-gray-700 rounded-lg"></div>
+                            <div>Similarity <input type="range" id="elSimilarity" min="0" max="1" step="0.1" value="0.75" class="w-full h-1 bg-gray-700 rounded-lg"></div>
+                        </div>
+
+                        <!-- Generate -->
+                        <button onclick="generateElevenAudio()" id="elGenBtn" class="w-full py-2 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-bold hover:shadow-lg hover:shadow-purple-500/20 transition flex items-center justify-center gap-2">
+                            <i data-lucide="sparkles" class="w-3 h-3"></i> GENERATE AUDIO
+                        </button>
+                        
+                        <div id="elevenPlayerContainer" class="hidden flex items-center gap-2">
+                            <audio id="elevenAudioPreview" controls class="flex-1 h-8"></audio>
+                            <span class="text-[9px] text-green-400 font-bold">READY</span>
+                        </div>
+                    </div>
+
+                    <!-- UPLOAD CONTROLS -->
+                    <div id="uploadControls" class="hidden space-y-2">
+                        <div class="p-3 bg-black/20 rounded-lg border border-white/5 text-center space-y-2">
+                            <div class="text-[10px] text-gray-400 mb-2">Upload any audio file.<br>Animation will auto-sync.</div>
+                            
+                            <input type="file" id="uploadAudioInput" accept="audio/*" onchange="handleAudioUpload(this)">
+                            <button onclick="document.getElementById('uploadAudioInput').click()" class="w-full py-3 rounded-xl bg-blue-600/20 text-blue-400 border border-blue-600/50 hover:bg-blue-600 hover:text-white transition font-bold flex items-center justify-center gap-2">
+                                <i data-lucide="upload" class="w-4 h-4"></i> CHOOSE AUDIO FILE
+                            </button>
+
+                            <div id="uploadAudioPlayerContainer" class="hidden flex items-center gap-2 mt-2">
+                                <audio id="uploadAudioPreview" controls class="h-8 flex-1 w-full"></audio>
+                                <button onclick="deleteUploadedAudio()" class="p-2 text-red-400 hover:text-red-300" title="Remove File"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- FOOTER -->
+        <div class="p-4 md:p-5 border-t border-white/10 bg-[#0f0f11] space-y-2 shrink-0">
+            <button onclick="togglePreview()" id="playBtn" class="w-full bg-white text-black font-black py-3 rounded-xl text-xs flex items-center justify-center gap-2 hover:bg-gray-200 transition">
+                <i data-lucide="play" class="w-3 h-3"></i> PREVIEW
+            </button>
+            <button onclick="exportWithAudio()" class="w-full bg-purple-600 text-white font-bold py-3 rounded-xl text-xs flex items-center justify-center gap-2 hover:bg-purple-500 transition">
+                <i data-lucide="download" class="w-3 h-3"></i> EXPORT VIDEO
+            </button>
+        </div>
+    </div>
+
+    <!-- CANVAS AREA -->
+    <div class="h-[45%] w-full md:flex-1 md:h-full bg-[#0a0a0a] relative flex items-center justify-center p-2 md:p-8 bg-[radial-gradient(#222_1px,transparent_1px)] bg-[size:24px_24px] overflow-hidden">
+        <div id="canvasContainer" class="relative shadow-2xl border border-white/10 bg-black overflow-hidden" style="width: 360px; height: 640px; transform-origin: center;">
+            <div id="bgLayer" class="absolute inset-0 z-0">
+                <img id="bgImgDisplay" class="w-full h-full object-cover hidden" crossorigin="anonymous">
+                <video id="bgVidDisplay" class="w-full h-full object-cover hidden" loop muted playsinline crossorigin="anonymous"></video>
+                <div id="bgColorDisplay" class="w-full h-full hidden"></div>
+            </div>
+            <!-- Texture overlay kept for DOM UI, but drawn explicitly for exports -->
+            <div id="textureOverlay" class="absolute inset-0 pointer-events-none z-10 opacity-30 hidden"></div>
+            <canvas id="mainCanvas" class="w-full h-full block relative z-20"></canvas>
+        </div>
+    </div>
+
+    <!-- AUDIO POOL -->
+    <audio id="sfxPop" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3" crossorigin="anonymous"></audio>
+    <audio id="sfxWhoosh" src="https://assets.mixkit.co/active_storage/sfx/1360/1360-preview.mp3" crossorigin="anonymous"></audio>
+    <audio id="sfxClick" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" crossorigin="anonymous"></audio>
+
+    <script>
+        lucide.createIcons();
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+        const SCALE = 2; 
+
+        // STATE
+        const STATE = {
+            format: { w: 360, h: 640, pad: 30, fontSize: 40 },
+            isPlaying: false, objects: [], layout: [], wordIndex: 0,
+            colors: { main: '#ffffff', high: '#ff3b3b' }, assets: {}, sfxEnabled: true,
+            animation: 'elastic', bgType: 'color', bgValue: '#000000',
+            isRecording: false, recognition: null,
+            // Voiceover State
+            voiceMode: 'tts', // 'tts', 'rec', 'eleven', 'upload'
+            recMode: 'scene', // 'scene' or 'continuous'
+            sceneAudios: {}, // Map index -> Blob
+            continuousBlob: null,
+            activeRecorder: null, recordingIndex: null, isContRecording: false, isContPaused: false,
+            // ElevenLabs
+            elevenKey: localStorage.getItem('eleven_key') || '',
+            elevenVoices: [],
+            isFallbackPlaying: false, // For TTS Bug fallback
+            isExporting: false
+        };
+
+        // Resource Setup for proper canvas rendering
+        const paperTexture = new Image();
+        paperTexture.crossOrigin = 'anonymous';
+        paperTexture.src = 'https://www.transparenttextures.com/patterns/cream-paper.png';
+
+        let noiseCanvas = null;
+        function getNoiseCanvas(w, h) {
+            if(!noiseCanvas || noiseCanvas.width !== w) {
+                noiseCanvas = document.createElement('canvas');
+                noiseCanvas.width = w; noiseCanvas.height = h;
+                const nctx = noiseCanvas.getContext('2d');
+                const imgData = nctx.createImageData(w, h);
+                const data = imgData.data;
+                for (let i = 0; i < data.length; i += 4) {
+                    const c = Math.random() * 255;
+                    data[i]=c; data[i+1]=c; data[i+2]=c; data[i+3]= 15; // low opacity noise
+                }
+                nctx.putImageData(imgData, 0, 0);
+            }
+            return noiseCanvas;
+        }
+
+        function init() {
+            resizeCanvas(); loadVoices(); loadAssets(); loadSavedFonts();
+            if(speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = loadVoices;
+            setBackground('color', '#000000');
+            if(STATE.elevenKey) document.getElementById('elevenApiKey').value = STATE.elevenKey;
+            loop();
+        }
+
+        // --- SPEECH RECOGNITION ---
+        function toggleDictation() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                return alert("Voice dictation is not supported on this browser (try Chrome on Desktop/Android).");
+            }
+            const btn = document.getElementById('micBtn');
+            const textArea = document.getElementById('scriptInput');
+
+            if (STATE.isRecording) {
+                STATE.recognition.stop();
+                return;
+            }
+
+            const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            STATE.recognition = new Recognition();
+            STATE.recognition.continuous = true;
+            STATE.recognition.interimResults = true;
+            STATE.recognition.lang = document.getElementById('dictationLang').value || 'en-US';
+
+            STATE.recognition.onstart = () => {
+                STATE.isRecording = true;
+                btn.innerHTML = '<i data-lucide="mic-off" class="w-3 h-3"></i> Stop';
+                btn.className = "text-[10px] px-3 py-1 bg-red-500 text-white border border-red-600 rounded-full hover:bg-red-600 flex items-center gap-1.5 transition shadow-lg shadow-red-500/30";
+                textArea.classList.add('recording-pulse');
+                lucide.createIcons();
+            };
+
+            STATE.recognition.onresult = (event) => {
+                let final = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) final += event.results[i][0].transcript;
+                }
+                if (final) {
+                    const currentVal = textArea.value;
+                    const needsSpace = currentVal.length > 0 && !currentVal.endsWith(' ') && !currentVal.endsWith('\n');
+                    textArea.value = currentVal + (needsSpace ? ' ' : '') + final;
+                    textArea.scrollTop = textArea.scrollHeight;
+                }
+            };
+
+            STATE.recognition.onend = () => {
+                STATE.isRecording = false;
+                btn.innerHTML = '<i data-lucide="mic" class="w-3 h-3"></i> Speak';
+                btn.className = "text-[10px] px-3 py-1 bg-white/5 text-gray-300 border border-white/10 rounded-full hover:bg-white/10 flex items-center gap-1.5 transition";
+                textArea.classList.remove('recording-pulse');
+                lucide.createIcons();
+            };
+            STATE.recognition.start();
+        }
+
+        function updateDictationLang() {
+            if (STATE.isRecording && STATE.recognition) {
+                STATE.recognition.stop();
+                setTimeout(() => { toggleDictation(); }, 500);
+            }
+        }
+
+        // --- VOICE MODE UI ---
+        function setVoiceMode(mode) {
+            STATE.voiceMode = mode;
+            const ttsBtn = document.getElementById('btnModeTTS');
+            const recBtn = document.getElementById('btnModeRec');
+            const elBtn = document.getElementById('btnModeEleven');
+            const upBtn = document.getElementById('btnModeUpload');
+            
+            const ttsCtrl = document.getElementById('ttsControls');
+            const recCtrl = document.getElementById('recControls');
+            const elCtrl = document.getElementById('elevenControls');
+            const upCtrl = document.getElementById('uploadControls');
+
+            // Reset Classes
+            [ttsBtn, recBtn, elBtn, upBtn].forEach(b => b.className = "flex-1 pb-2 text-[10px] font-bold transition tab-inactive");
+            [ttsCtrl, recCtrl, elCtrl, upCtrl].forEach(c => c.classList.add('hidden'));
+
+            if (mode === 'tts') {
+                ttsBtn.className = "flex-1 pb-2 text-[10px] font-bold transition tab-active";
+                ttsCtrl.classList.remove('hidden');
+            } else if (mode === 'rec') {
+                recBtn.className = "flex-1 pb-2 text-[10px] font-bold transition tab-active";
+                recCtrl.classList.remove('hidden');
+                if(STATE.recMode === 'scene') generateSceneList();
+            } else if (mode === 'eleven') {
+                elBtn.className = "flex-1 pb-2 text-[10px] font-bold transition tab-active text-purple-400";
+                elCtrl.classList.remove('hidden');
+            } else if (mode === 'upload') {
+                upBtn.className = "flex-1 pb-2 text-[10px] font-bold transition tab-active";
+                upCtrl.classList.remove('hidden');
+            }
+        }
+
+        // --- UPLOAD LOGIC ---
+        function handleAudioUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const url = URL.createObjectURL(file);
+            STATE.continuousBlob = file; // Save for playback logic
+            
+            const audio = document.getElementById('uploadAudioPreview');
+            audio.src = url;
+            document.getElementById('uploadAudioPlayerContainer').classList.remove('hidden');
+        }
+
+        function deleteUploadedAudio() {
+            STATE.continuousBlob = null;
+            document.getElementById('uploadAudioInput').value = '';
+            document.getElementById('uploadAudioPreview').src = '';
+            document.getElementById('uploadAudioPlayerContainer').classList.add('hidden');
+        }
+
+        // --- ELEVENLABS LOGIC ---
+        function saveElevenKey() {
+            const key = document.getElementById('elevenApiKey').value.trim();
+            if(key) {
+                localStorage.setItem('eleven_key', key);
+                STATE.elevenKey = key;
+                alert("API Key Saved!");
+            }
+        }
+
+        async function fetchElevenVoices() {
+            const inputKey = document.getElementById('elevenApiKey').value.trim();
+            if (!STATE.elevenKey && inputKey) STATE.elevenKey = inputKey;
+
+            if(!STATE.elevenKey) return alert("Please Paste & Save API Key first.");
+            
+            const btn = document.querySelector('#elevenControls button[title="Refresh Voices"]');
+            btn.innerHTML = '...';
+            
+            try {
+                const res = await fetch('https://api.elevenlabs.io/v1/voices', {
+                    headers: { 'xi-api-key': STATE.elevenKey.trim() }
+                });
+                
+                if (res.status === 401) throw new Error("Invalid API Key. Please check and save again.");
+                if (!res.ok) throw new Error("Network Error: " + res.status);
+
+                const data = await res.json();
+                const sel = document.getElementById('elevenVoiceSelect');
+                sel.innerHTML = '<option value="">Select Voice...</option>';
+                
+                const cloned = data.voices.filter(v => v.category === 'cloned');
+                const premade = data.voices.filter(v => v.category !== 'cloned');
+
+                if(cloned.length > 0) {
+                    const grp = document.createElement('optgroup'); grp.label = "Your Cloned Voices";
+                    cloned.forEach(v => { grp.innerHTML += `<option value="${v.voice_id}">👤 ${v.name}</option>`; });
+                    sel.appendChild(grp);
+                }
+                const grp2 = document.createElement('optgroup'); grp2.label = "Premade Voices";
+                premade.forEach(v => { grp2.innerHTML += `<option value="${v.voice_id}">${v.name}</option>`; });
+                sel.appendChild(grp2);
+
+            } catch(e) { alert(e.message); }
+            btn.innerHTML = '<i data-lucide="refresh-cw" class="w-3 h-3"></i>';
+            lucide.createIcons();
+        }
+
+        async function createElevenClone() {
+            const name = document.getElementById('cloneName').value;
+            const fileInput = document.getElementById('cloneFile');
+            if(!name || !fileInput.files[0]) return alert("Name and Audio file required!");
+            
+            const inputKey = document.getElementById('elevenApiKey').value.trim();
+            if (!STATE.elevenKey && inputKey) STATE.elevenKey = inputKey;
+            if(!STATE.elevenKey) return alert("API Key required!");
+
+            const btn = document.querySelector('#elevenControls details button');
+            const originalText = btn.innerText;
+            btn.innerText = "Uploading...";
+            btn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('files', fileInput.files[0]);
+            formData.append('description', 'Viral Studio Clone');
+
+            try {
+                const res = await fetch('https://api.elevenlabs.io/v1/voices/add', {
+                    method: 'POST',
+                    headers: { 'xi-api-key': STATE.elevenKey.trim() },
+                    body: formData
+                });
+                
+                if (res.status === 401) throw new Error("Invalid API Key");
+                if (!res.ok) throw new Error(await res.text());
+                
+                alert("Voice Cloned Successfully! Refreshing list...");
+                fetchElevenVoices();
+                document.getElementById('cloneName').value = '';
+                fileInput.value = '';
+            } catch(e) { alert("Error cloning: " + e.message); }
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+
+        async function generateElevenAudio() {
+            const voiceId = document.getElementById('elevenVoiceSelect').value;
+            const text = document.getElementById('scriptInput').value.replace(/\[.*?\]/g, '').replace(/\(.*?\)/g, '').replace(/\*/g, '');
+            if(!voiceId) return alert("Select a voice!");
+            if(!text) return alert("No text to generate!");
+            
+            const inputKey = document.getElementById('elevenApiKey').value.trim();
+            if (!STATE.elevenKey && inputKey) STATE.elevenKey = inputKey;
+
+            const btn = document.getElementById('elGenBtn');
+            btn.innerHTML = 'Generating...';
+            btn.disabled = true;
+
+            const stability = parseFloat(document.getElementById('elStability').value);
+            const similarity = parseFloat(document.getElementById('elSimilarity').value);
+
+            try {
+                const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+                    method: 'POST',
+                    headers: {
+                        'xi-api-key': STATE.elevenKey.trim(),
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        text: text,
+                        model_id: "eleven_multilingual_v2",
+                        voice_settings: { stability, similarity_boost: similarity }
+                    })
+                });
+                
+                if (res.status === 401) throw new Error("Invalid API Key");
+                if(!res.ok) throw new Error("API Error");
+                
+                const blob = await res.blob();
+                STATE.continuousBlob = blob;
+                
+                const audio = document.getElementById('elevenAudioPreview');
+                audio.src = URL.createObjectURL(blob);
+                document.getElementById('elevenPlayerContainer').classList.remove('hidden');
+                
+            } catch(e) { alert("Generation Failed: " + e.message); }
+            
+            btn.innerHTML = '<i data-lucide="sparkles" class="w-3 h-3"></i> GENERATE AUDIO';
+            btn.disabled = false;
+            lucide.createIcons();
+        }
+
+        // --- RECORDER SUB-MODES ---
+        function setRecSubMode(mode) {
+            STATE.recMode = mode;
+            const sBtn = document.getElementById('subModeScene');
+            const cBtn = document.getElementById('subModeCont');
+            const sUI = document.getElementById('sceneUI');
+            const cUI = document.getElementById('continuousUI');
+
+            if (mode === 'scene') {
+                sBtn.className = "flex-1 py-1 text-[9px] rounded-md transition sub-tab-active";
+                cBtn.className = "flex-1 py-1 text-[9px] rounded-md transition sub-tab-inactive";
+                sUI.classList.remove('hidden');
+                cUI.classList.add('hidden');
+                generateSceneList();
+            } else {
+                sBtn.className = "flex-1 py-1 text-[9px] rounded-md transition sub-tab-inactive";
+                cBtn.className = "flex-1 py-1 text-[9px] rounded-md transition sub-tab-active";
+                sUI.classList.add('hidden');
+                cUI.classList.remove('hidden');
+            }
+        }
+
+        // --- SCENE RECORDING SYSTEM ---
+        function generateSceneList() {
+            const text = document.getElementById('scriptInput').value;
+            const lines = text.split('\n').filter(l => l.trim() !== '');
+            const container = document.getElementById('sceneListContainer');
+            container.innerHTML = '';
+
+            lines.forEach((line, index) => {
+                const hasAudio = !!STATE.sceneAudios[index];
+                const div = document.createElement('div');
+                div.className = 'scene-item';
+                div.innerHTML = `
+                    <span class="scene-text" title="${line}">${index+1}. ${line}</span>
+                    <div class="flex gap-2">
+                        <button onclick="recordScene(${index}, this)" class="rec-btn-small ${STATE.recordingIndex === index ? 'rec-active' : ''}">
+                            <i data-lucide="${STATE.recordingIndex === index ? 'square' : 'mic'}" class="w-3 h-3 text-white"></i>
+                        </button>
+                        ${hasAudio ? `
+                        <button onclick="playSceneAudio(${index})" class="rec-btn-small play-btn-small">
+                            <i data-lucide="play" class="w-3 h-3"></i>
+                        </button>
+                        <button onclick="deleteSceneAudio(${index})" class="rec-btn-small del-btn-small">
+                            <i data-lucide="trash-2" class="w-3 h-3"></i>
+                        </button>` : ''}
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+            lucide.createIcons();
+        }
+
+        async function recordScene(index, btn) {
+            if (STATE.recordingIndex === index) {
+                STATE.activeRecorder.stop();
+                STATE.recordingIndex = null;
+                STATE.activeRecorder = null;
+                generateSceneList();
+                return;
+            }
+            if (STATE.recordingIndex !== null) return alert("Stop current recording first!");
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const mediaRecorder = new MediaRecorder(stream);
+                const chunks = [];
+                mediaRecorder.ondataavailable = e => chunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(chunks, { type: 'audio/mp3' });
+                    STATE.sceneAudios[index] = blob;
+                    generateSceneList();
+                };
+                mediaRecorder.start();
+                STATE.activeRecorder = mediaRecorder;
+                STATE.recordingIndex = index;
+                generateSceneList();
+            } catch(e) { alert("Mic access required!"); }
+        }
+
+        function playSceneAudio(index) {
+            if (STATE.sceneAudios[index]) {
+                const audio = new Audio(URL.createObjectURL(STATE.sceneAudios[index]));
+                audio.play();
+            }
+        }
+
+        function deleteSceneAudio(index) {
+            if (confirm("Delete audio?")) {
+                delete STATE.sceneAudios[index];
+                generateSceneList();
+            }
+        }
+
+        // --- CONTINUOUS RECORDING SYSTEM ---
+        async function toggleContinuousRecord() {
+            const btn = document.getElementById('contRecBtn');
+            const pauseBtn = document.getElementById('contPauseBtn');
+            const prompter = document.getElementById('prompterContainer');
+            const prompterText = document.getElementById('prompterText');
+
+            if (STATE.isContRecording) {
+                // STOP
+                STATE.activeRecorder.stop();
+                STATE.isContRecording = false;
+                STATE.activeRecorder = null;
+                
+                // UI Reset
+                btn.innerHTML = '<i data-lucide="mic" class="w-4 h-4"></i> Re-Record';
+                btn.className = "w-full py-3 rounded-xl bg-white/5 border border-white/10 text-white font-bold flex items-center justify-center gap-2 hover:bg-white/10 transition";
+                
+                pauseBtn.classList.add('hidden');
+                prompter.classList.add('hidden');
+                
+                lucide.createIcons();
+                return;
+            }
+
+            // START
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const mediaRecorder = new MediaRecorder(stream);
+                const chunks = [];
+                
+                mediaRecorder.ondataavailable = e => chunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(chunks, { type: 'audio/mp3' });
+                    STATE.continuousBlob = blob;
+                    const audio = document.getElementById('contAudioEl');
+                    audio.src = URL.createObjectURL(blob);
+                    document.getElementById('contAudioPlayer').classList.remove('hidden');
+                };
+
+                mediaRecorder.start();
+                STATE.activeRecorder = mediaRecorder;
+                STATE.isContRecording = true;
+                STATE.isContPaused = false;
+
+                // UI Update
+                btn.innerHTML = '<div class="w-3 h-3 bg-white rounded animate-pulse"></div> Stop';
+                btn.className = "flex-1 py-3 rounded-xl bg-red-600 text-white border border-red-500 font-bold flex items-center justify-center gap-2 recording-pulse";
+                
+                // Show Pause & Prompter
+                pauseBtn.classList.remove('hidden');
+                pauseBtn.innerHTML = '<i data-lucide="pause" class="w-4 h-4"></i>';
+                
+                prompter.classList.remove('hidden');
+                // Clean script for reading
+                const rawScript = document.getElementById('scriptInput').value;
+                const cleanScript = rawScript.replace(/\[.*?\]/g, '').replace(/\(.*?\)/g, '').replace(/\*/g, '');
+                prompterText.innerText = cleanScript;
+
+                lucide.createIcons();
+
+            } catch(e) { 
+                console.error(e);
+                alert("Mic required!"); 
+            }
+        }
+
+        function togglePauseCont() {
+            const btn = document.getElementById('contPauseBtn');
+            if (!STATE.activeRecorder) return;
+
+            if (STATE.activeRecorder.state === 'recording') {
+                STATE.activeRecorder.pause();
+                STATE.isContPaused = true;
+                btn.innerHTML = '<i data-lucide="play" class="w-4 h-4"></i>'; // Resume icon
+                btn.className = "w-1/3 py-3 rounded-xl bg-green-600/20 text-green-500 border border-green-600/50 hover:bg-green-600 hover:text-white transition font-bold flex items-center justify-center gap-2";
+            } else if (STATE.activeRecorder.state === 'paused') {
+                STATE.activeRecorder.resume();
+                STATE.isContPaused = false;
+                btn.innerHTML = '<i data-lucide="pause" class="w-4 h-4"></i>';
+                btn.className = "w-1/3 py-3 rounded-xl bg-yellow-600/20 text-yellow-500 border border-yellow-600/50 hover:bg-yellow-600 hover:text-white transition font-bold flex items-center justify-center gap-2";
+            }
+            lucide.createIcons();
+        }
+
+        function deleteContinuousAudio() {
+            if(confirm("Delete this recording?")) {
+                STATE.continuousBlob = null;
+                document.getElementById('contAudioPlayer').classList.add('hidden');
+                document.getElementById('contAudioEl').src = "";
+            }
+        }
+
+        // --- LAYOUT ---
+        function parseScript(text) {
+            const scenes = text.split('\n');
+            const layout = [];
+            ctx.font = `900 ${STATE.format.fontSize * SCALE}px '${document.getElementById('fontSelect').value}'`;
+
+            scenes.forEach((sceneText, sceneIdx) => {
+                const rawWords = sceneText.trim().split(/\s+/);
+                const lines = [];
+                let currentLine = [];
+                let currentW = 0;
+                let currentLineHasMedia = false;
+
+                rawWords.forEach(token => {
+                    const imgMatch = token.match(/^([^\[\(\{]*?)[\(\[\{](.*?)[\)\]\}]$/); 
+                    let text = token;
+                    let imgKey = null; let annotation = null; let isSilent = false;
+                    if (imgMatch) {
+                        const content = imgMatch[2].toLowerCase().trim();
+                        if (content === 'circle' || content === 'arrow') { text = imgMatch[1]; annotation = content; }
+                        else { text = imgMatch[1]; imgKey = (!STATE.assets[content] && STATE.assets[token.toLowerCase()]) ? token.toLowerCase() : content; }
+                    }
+                    if (!text && imgKey) isSilent = true;
+                    const cleanText = text.replace(/\*/g, '');
+                    let width = 0; if (cleanText) width += ctx.measureText(cleanText + " ").width / SCALE;
+                    let imgSize = 0; let hasMedia = false;
+                    if (imgKey && STATE.assets[imgKey]) { imgSize = STATE.format.fontSize * 3; width += imgSize + 10; hasMedia = true; }
+
+                    if (currentW + width > (STATE.format.w - 60)) { lines.push({ words: currentLine, hasMedia: currentLineHasMedia }); currentLine = []; currentW = 0; currentLineHasMedia = false; }
+                    currentLine.push({ text, cleanText, imgKey, annotation, width, isSilent, imgSize: imgKey ? STATE.format.fontSize * 3 : 0 });
+                    currentW += width; if(hasMedia) currentLineHasMedia = true;
+                });
+                if (currentLine.length > 0) lines.push({ words: currentLine, hasMedia: currentLineHasMedia });
+
+                const baseH = STATE.format.fontSize;
+                let totalH = 0; lines.forEach(l => { l.height = l.hasMedia ? baseH * 3.5 : baseH * 1.5; totalH += l.height; });
+                let startY = (STATE.format.h - totalH) / 2;
+
+                lines.forEach(line => {
+                    let startX = (STATE.format.w - line.words.reduce((a,b)=>a+b.width,0)) / 2;
+                    const centerY = startY + (line.height / 2);
+                    line.words.forEach((w, i) => {
+                        layout.push({ ...w, x: startX, y: centerY, isNewLine: i === 0 && line === lines[0], sceneIndex: sceneIdx });
+                        startX += w.width;
+                    });
+                    startY += line.height;
+                });
+                layout.push({ isBreak: true, sceneIndex: sceneIdx });
+            });
+            return layout;
+        }
+
+        // --- PREVIEW ---
+        function togglePreview() { STATE.isPlaying ? stopPreview() : startPreview(); }
+        
+        async function startPreview() {
+            stopPreview();
+            const btn = document.getElementById('playBtn');
+            btn.innerHTML = '<div class="w-3 h-3 border-2 border-black border-t-transparent rounded-full animate-spin"></div> Starting...';
+            document.body.style.cursor = 'wait';
+
+            await new Promise(r => setTimeout(r, 100)); 
+            await document.fonts.ready; 
+
+            STATE.objects = [];
+            STATE.wordIndex = 0;
+            const text = document.getElementById('scriptInput').value;
+            STATE.layout = parseScript(text);
+
+            if (STATE.layout.length === 0) { resetUI(); return; }
+
+            STATE.isPlaying = true;
+
+            if (STATE.voiceMode === 'rec' && STATE.recMode === 'scene') {
+                playSceneSequence(0);
+            } else if (STATE.voiceMode === 'eleven' || (STATE.voiceMode === 'rec' && STATE.recMode === 'continuous') || STATE.voiceMode === 'upload') {
+                playContinuous();
+            } else {
+                playTTSSequence(text);
+            }
+            
+            document.body.style.cursor = 'default';
+            btn.innerHTML = '<i data-lucide="square" class="w-3 h-3 fill-current"></i> STOP';
+            lucide.createIcons();
+        }
+
+        function playContinuous() {
+            if (!STATE.continuousBlob) { 
+                let msg = "No audio found!";
+                if(STATE.voiceMode === 'eleven') msg = "Generate ElevenLabs Audio first!";
+                else if(STATE.voiceMode === 'rec') msg = "Record Single Take first!";
+                else if(STATE.voiceMode === 'upload') msg = "Upload an audio file first!";
+                
+                alert(msg); stopPreview(); return; 
+            }
+            
+            const audio = new Audio(URL.createObjectURL(STATE.continuousBlob));
+            STATE.currentAudio = audio;
+
+            audio.onloadedmetadata = () => {
+                if(audio.duration === Infinity || isNaN(audio.duration)) {
+                    audio.currentTime = 1e10; 
+                    audio.ontimeupdate = () => {
+                        audio.ontimeupdate = null;
+                        const durSec = audio.duration;
+                        audio.currentTime = 0;
+                        setTimeout(() => startSyncPlayback(durSec), 50);
+                    };
+                } else {
+                    startSyncPlayback(audio.duration);
+                }
+            };
+
+            function startSyncPlayback(durationSec) {
+                const durationMs = durationSec * 1000;
+                const allItems = STATE.layout;
+                
+                let totalWeight = 0;
+                allItems.forEach(i => {
+                    if (!i.isBreak) totalWeight += (i.cleanText ? i.cleanText.length : 0) + 3;
+                });
+                
+                const timePerWeight = durationMs / (totalWeight || 1);
+                
+                let timeline = [];
+                let currentTime = 0;
+                allItems.forEach(item => {
+                    if (item.isBreak) {
+                        timeline.push({ type: 'break', time: currentTime });
+                    } else {
+                        timeline.push({ type: 'word', item: item, time: currentTime });
+                        currentTime += ((item.cleanText ? item.cleanText.length : 0) + 3) * timePerWeight;
+                    }
+                });
+
+                audio.play();
+                let currentIndex = 0;
+
+                function syncLoop() {
+                    if (!STATE.isPlaying || !STATE.currentAudio) return;
+                    const audioTime = audio.currentTime * 1000;
+                    
+                    while(currentIndex < timeline.length && audioTime >= timeline[currentIndex].time) {
+                        const event = timeline[currentIndex];
+                        if (event.type === 'break') STATE.objects = [];
+                        else spawnItem(event.item);
+                        currentIndex++;
+                    }
+                    
+                    if (currentIndex < timeline.length) {
+                        STATE.animTimer = requestAnimationFrame(syncLoop);
+                    }
+                }
+                STATE.animTimer = requestAnimationFrame(syncLoop);
+                audio.onended = stopPreview;
+            }
+            
+            audio.load(); 
+        }
+
+        function playSceneSequence(sceneIdx) {
+            if (!STATE.isPlaying) return;
+            const sceneItems = STATE.layout.filter(item => item.sceneIndex === sceneIdx && !item.isBreak);
+            if (sceneItems.length === 0 && sceneIdx < STATE.layout[STATE.layout.length-1].sceneIndex) { playSceneSequence(sceneIdx + 1); return; }
+            if (sceneItems.length === 0) { stopPreview(); return; } 
+
+            const audioBlob = STATE.sceneAudios[sceneIdx];
+            
+            if (audioBlob) {
+                const audio = new Audio(URL.createObjectURL(audioBlob));
+                STATE.currentAudio = audio;
+                
+                audio.onloadedmetadata = () => {
+                    if(audio.duration === Infinity || isNaN(audio.duration)) {
+                        audio.currentTime = 1e10;
+                        audio.ontimeupdate = () => {
+                            audio.ontimeupdate = null;
+                            const durSec = audio.duration;
+                            audio.currentTime = 0;
+                            setTimeout(() => startSceneSync(durSec), 50);
+                        };
+                    } else {
+                        startSceneSync(audio.duration);
+                    }
+                };
+
+                function startSceneSync(durSec) {
+                    const durationMs = durSec * 1000;
+                    let totalWeight = 0;
+                    sceneItems.forEach(i => totalWeight += (i.cleanText ? i.cleanText.length : 0) + 3);
+                    const timePerWeight = durationMs / (totalWeight || 1);
+                    
+                    let timeline = [];
+                    let currentTime = 0;
+                    sceneItems.forEach(item => {
+                        timeline.push({ item: item, time: currentTime });
+                        currentTime += ((item.cleanText ? item.cleanText.length : 0) + 3) * timePerWeight;
+                    });
+
+                    audio.play();
+                    let currentIndex = 0;
+                    
+                    function syncLoop() {
+                        if (!STATE.isPlaying || !STATE.currentAudio) return;
+                        const audioTime = audio.currentTime * 1000;
+                        
+                        while(currentIndex < timeline.length && audioTime >= timeline[currentIndex].time) {
+                            spawnItem(timeline[currentIndex].item);
+                            currentIndex++;
+                        }
+                        
+                        if (currentIndex < timeline.length) {
+                            STATE.animTimer = requestAnimationFrame(syncLoop);
+                        }
+                    }
+                    STATE.animTimer = requestAnimationFrame(syncLoop);
+                    audio.onended = () => { 
+                        if (STATE.animTimer) cancelAnimationFrame(STATE.animTimer);
+                        STATE.objects = []; 
+                        playSceneSequence(sceneIdx + 1); 
+                    };
+                }
+                
+                audio.load();
+            } else {
+                let idx = 0;
+                STATE.animTimer = setInterval(() => {
+                    if (idx < sceneItems.length) { spawnItem(sceneItems[idx]); idx++; }
+                    else { clearInterval(STATE.animTimer); setTimeout(() => { STATE.objects = []; playSceneSequence(sceneIdx + 1); }, 1000); }
+                }, 400); 
+            }
+        }
+
+        function playTTSSequence(text) {
+             let speechText = text.replace(/[\(\[\{].*?[\)\]\}]/g, '').replace(/\*/g, '');
+             speechText = speechText.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '');
+             
+             const u = new SpeechSynthesisUtterance(speechText);
+             const vName = document.getElementById('voiceSelect').value;
+             const voiceInfo = window.speechSynthesis.getVoices().find(v => v.name === vName);
+             if (voiceInfo) u.voice = voiceInfo;
+             u.rate = parseFloat(document.getElementById('speedRange').value);
+             
+             let boundaryFired = false;
+             
+             const startFallback = () => {
+                 if (boundaryFired || !STATE.isPlaying) return;
+                 STATE.isFallbackPlaying = true;
+                 
+                 const durationMs = (speechText.length * 75) / u.rate;
+                 let totalWeight = 0;
+                 STATE.layout.forEach(i => { if(!i.isBreak) totalWeight += (i.cleanText ? i.cleanText.length : 0) + 3; });
+                 const timePerWeight = durationMs / (totalWeight || 1);
+                 
+                 let timeline = [];
+                 let currentTime = 0;
+                 STATE.layout.forEach(item => {
+                     if (item.isBreak) {
+                         timeline.push({ type: 'break', time: currentTime });
+                     } else {
+                         timeline.push({ type: 'word', item: item, time: currentTime });
+                         currentTime += ((item.cleanText ? item.cleanText.length : 0) + 3) * timePerWeight;
+                     }
+                 });
+
+                 const startTime = Date.now();
+                 let currentIndex = 0;
+                 
+                 function syncLoop() {
+                     if (!STATE.isPlaying) return;
+                     const elapsed = Date.now() - startTime;
+                     
+                     while(currentIndex < timeline.length && elapsed >= timeline[currentIndex].time) {
+                         const event = timeline[currentIndex];
+                         if (event.type === 'break') STATE.objects = [];
+                         else spawnItem(event.item);
+                         currentIndex++;
+                     }
+                     
+                     if (currentIndex < timeline.length) {
+                         STATE.animTimer = requestAnimationFrame(syncLoop);
+                     } else {
+                         setTimeout(stopPreview, 1000);
+                     }
+                 }
+                 STATE.animTimer = requestAnimationFrame(syncLoop);
+             };
+
+             let fallbackTimeout = setTimeout(startFallback, 500);
+
+             u.onboundary = (e) => {
+                boundaryFired = true;
+                clearTimeout(fallbackTimeout);
+                
+                if (e.name === 'word') {
+                    if (STATE.layout[STATE.wordIndex]?.isBreak) { STATE.objects = []; STATE.wordIndex++; } 
+                     while (STATE.layout[STATE.wordIndex]?.isBreak) { STATE.objects = []; STATE.wordIndex++; }
+                     while (STATE.layout[STATE.wordIndex]?.isSilent && !STATE.layout[STATE.wordIndex]?.isBreak) { spawnItem(STATE.layout[STATE.wordIndex]); STATE.wordIndex++; }
+                     if (STATE.layout[STATE.wordIndex] && !STATE.layout[STATE.wordIndex].isBreak) { spawnItem(STATE.layout[STATE.wordIndex]); STATE.wordIndex++; }
+                     while (STATE.layout[STATE.wordIndex]?.isSilent && !STATE.layout[STATE.wordIndex]?.isBreak) { spawnItem(STATE.layout[STATE.wordIndex]); STATE.wordIndex++; }
+                }
+             };
+
+             u.onerror = (e) => {
+                 console.warn("TTS Error, running fallback", e);
+                 clearTimeout(fallbackTimeout);
+                 startFallback();
+             };
+
+             u.onstart = () => { };
+             u.onend = () => {
+                 if (!boundaryFired && !STATE.isFallbackPlaying) { 
+                     clearTimeout(fallbackTimeout);
+                     startFallback(); 
+                 }
+                 else if (boundaryFired) { stopPreview(); }
+             };
+             window.speechSynthesis.speak(u);
+        }
+
+        function stopPreview() {
+            window.speechSynthesis.cancel();
+            if (STATE.currentAudio) { STATE.currentAudio.pause(); STATE.currentAudio = null; }
+            if (STATE.animTimer) {
+                clearInterval(STATE.animTimer);
+                cancelAnimationFrame(STATE.animTimer);
+            }
+            STATE.isFallbackPlaying = false;
+            resetUI();
+            STATE.isPlaying = false;
+        }
+
+        function resetUI() {
+            document.getElementById('playBtn').innerHTML = '<i data-lucide="play" class="w-3 h-3"></i> PREVIEW';
+            document.body.style.cursor = 'default';
+            lucide.createIcons();
+            ['sfxPop', 'sfxWhoosh', 'sfxClick'].forEach(id => { const a = document.getElementById(id); if(a){a.pause(); a.currentTime=0;} });
+        }
+
+        function spawnItem(data) {
+            STATE.objects.push(new VisualItem(data));
+            if (STATE.sfxEnabled) {
+                if (data.imgKey) playSound('whoosh');
+                else if (data.text.includes('*')) playSound('pop');
+                else playSound('click');
+            }
+        }
+        function playSound(type) {
+            const id = type === 'pop' ? 'sfxPop' : (type === 'whoosh' ? 'sfxWhoosh' : 'sfxClick');
+            const audio = document.getElementById(id);
+            if (audio) { audio.currentTime = 0; audio.volume = type==='click'?0.3:0.8; audio.play().catch(e=>{}); }
+        }
+
+        // --- VISUAL ITEM ---
+        class VisualItem {
+            constructor(data) {
+                this.data = data;
+                this.font = document.getElementById('fontSelect').value;
+                this.animType = STATE.animation === 'mix' ? ['elastic', 'slide', 'glitch', 'cinema', 'spin', 'zoom', 'drop', 'blur', 'shake', 'flip', 'wave'][Math.floor(Math.random()*11)] : STATE.animation;
+                this.progress = 0; this.scale = 0; this.opacity = 0; this.offsetY = 0;
+                this.rotation = (Math.random()-0.5)*0.05; this.blur = 0; this.glitchOffset = 0;
+                this.pathProgress = 0;
+            }
+            update() {
+                this.progress += 0.05; if(this.progress > 1) this.progress = 1;
+                switch(this.animType) {
+                    case 'elastic': if(this.scale===0)this.scale=0.1; this.scale+=(1-this.scale)*0.2; this.opacity=Math.min(this.opacity+0.2,1); break;
+                    case 'slide': this.scale=1; this.offsetY=(1-this.progress)*40; this.opacity=this.progress; break;
+                    case 'glitch': this.scale=1; this.opacity=1; if(this.progress<0.3) this.glitchOffset=(Math.random()-0.5)*10; else this.glitchOffset=0; break;
+                    case 'cinema': this.scale=1.2-(this.progress*0.2); this.opacity=this.progress; break;
+                    case 'spin': this.scale=this.progress; this.opacity=this.progress; this.rotation=(1-this.progress)*Math.PI; break;
+                    case 'zoom': this.scale=3-(2*this.progress); if(this.scale<1)this.scale=1; this.opacity=this.progress; break;
+                    case 'drop': this.scale=1; this.opacity=this.progress; this.offsetY=(1-this.progress)*-100; break;
+                    case 'blur': this.scale=1; this.opacity=this.progress; this.blur=(1-this.progress)*10; break;
+                    case 'shake': this.scale=this.progress; this.opacity=1; if(this.progress<0.8) this.offsetY=(Math.random()-0.5)*20*(1-this.progress); else this.offsetY=0; break;
+                    case 'flip': this.opacity=1; this.scale=this.progress; break;
+                    case 'wave': this.scale=1; this.opacity=this.progress; this.offsetY=Math.sin(this.progress*Math.PI*2)*10*(1-this.progress); break;
+                }
+                if (this.data.annotation && this.pathProgress < 1) this.pathProgress += 0.05;
+            }
+            draw(ctx) {
+                ctx.save();
+                let dx = this.data.x + this.data.width/2 + this.glitchOffset;
+                let dy = this.data.y + this.offsetY;
+                
+                const isHighlight = this.data.text.includes('*');
+                let currentScale = this.scale;
+                
+                if (isHighlight) currentScale *= 1.15; 
+                
+                ctx.translate(dx, dy);
+                ctx.rotate(this.rotation);
+                ctx.scale(currentScale, currentScale);
+                ctx.translate(-this.data.width/2, 0); 
+                ctx.globalAlpha = this.opacity;
+                if (this.blur > 0.1) ctx.filter = `blur(${this.blur}px)`;
+
+                if (!this.data.isSilent && this.data.cleanText) {
+                    ctx.font = `900 ${STATE.format.fontSize}px '${this.font}'`;
+                    ctx.textBaseline = "middle";
+                    
+                    ctx.fillStyle = isHighlight ? STATE.colors.high : STATE.colors.main;
+                    
+                    ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowBlur = 10; ctx.shadowOffsetY = 4;
+                    
+                    if (STATE.bgType !== 'color' || isHighlight) {
+                        ctx.strokeStyle = "black"; 
+                        ctx.lineWidth = 4; 
+                        ctx.lineJoin = "round";
+                        ctx.strokeText(this.data.cleanText, 0, 0);
+                    }
+                    
+                    ctx.fillText(this.data.cleanText, 0, 0);
+                    ctx.shadowColor = "transparent"; 
+                }
+                if (this.data.imgKey && STATE.assets[this.data.imgKey]) {
+                    const img = new Image(); img.src = STATE.assets[this.data.imgKey];
+                    const txtW = this.data.isSilent ? 0 : ctx.measureText(this.data.cleanText).width;
+                    const size = this.data.imgSize;
+                    ctx.drawImage(img, txtW + 5, -size/2, size, size);
+                }
+                if (this.data.annotation) {
+                    const w = ctx.measureText(this.data.cleanText).width; const h = STATE.format.fontSize;
+                    ctx.strokeStyle = "#ff3b3b"; ctx.lineWidth = 4; ctx.lineCap = "round"; ctx.beginPath();
+                    if (this.data.annotation === 'circle') ctx.ellipse(w/2, 0, w/1.5 * this.pathProgress, h * this.pathProgress, 0, 0, Math.PI*2);
+                    else if (this.data.annotation === 'arrow') {
+                        const sx = -20; const sy = -40; const ex = 10; const ey = -10;
+                        ctx.moveTo(sx, sy); ctx.lineTo(sx + (ex-sx)*this.pathProgress, sy + (ey-sy)*this.pathProgress);
+                        if (this.pathProgress > 0.8) { ctx.lineTo(ex-10, ey-5); ctx.moveTo(ex, ey); ctx.lineTo(ex-5, ey-10); }
+                    }
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+        }
+
+        // --- DRAWING ENGINE FOR EXPORT ---
+        function drawCover(ctx, el, w, h) {
+            const elW = el.videoWidth || el.naturalWidth || el.width;
+            const elH = el.videoHeight || el.naturalHeight || el.height;
+            if(!elW || !elH) return;
+            const ratio = elW / elH;
+            const cRatio = w / h;
+            let dw, dh, dx, dy;
+            if (ratio > cRatio) {
+                dh = h; dw = h * ratio; dx = (w - dw) / 2; dy = 0;
+            } else {
+                dw = w; dh = w / ratio; dx = 0; dy = (h - dh) / 2;
+            }
+            try { ctx.drawImage(el, dx, dy, dw, dh); } catch(e){}
+        }
+
+        function loop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); 
+            
+            // Render Backgrounds Directly to Canvas
+            if (STATE.bgType === 'color') {
+                ctx.fillStyle = STATE.bgValue;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            } else if (STATE.bgType === 'image') {
+                const img = document.getElementById('bgImgDisplay');
+                if(img && img.src) drawCover(ctx, img, canvas.width, canvas.height);
+            } else if (STATE.bgType === 'video') {
+                const vid = document.getElementById('bgVidDisplay');
+                if(vid && vid.readyState >= 2) drawCover(ctx, vid, canvas.width, canvas.height);
+            }
+
+            // Render Textures
+            const tex = document.getElementById('textureSelect').value;
+            if (tex === 'paper' && paperTexture.complete) {
+                ctx.globalAlpha = 0.5;
+                try {
+                    const pat = ctx.createPattern(paperTexture, 'repeat');
+                    ctx.fillStyle = pat;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                } catch(e){}
+                ctx.globalAlpha = 1.0;
+            } else if (tex === 'crt') {
+                ctx.fillStyle = 'rgba(0,0,0,0.1)';
+                for(let i=0; i<canvas.height; i+=4) ctx.fillRect(0, i, canvas.width, 1);
+            } else if (tex === 'noise') {
+                ctx.drawImage(getNoiseCanvas(canvas.width, canvas.height), 0, 0);
+            }
+
+            // Render Objects
+            ctx.scale(SCALE, SCALE);
+            STATE.objects.forEach(o => { o.update(); o.draw(ctx); });
+            ctx.setTransform(1,0,0,1,0,0);
+            requestAnimationFrame(loop);
+        }
+
+        function resizeCanvas() { 
+            canvas.width = STATE.format.w*SCALE; 
+            canvas.height = STATE.format.h*SCALE; 
+            const container = document.getElementById('canvasContainer');
+            container.style.width = `${STATE.format.w}px`; 
+            container.style.height = `${STATE.format.h}px`; 
+
+            const wrapper = container.parentElement;
+            if (wrapper) {
+                const availableW = wrapper.clientWidth - 32; 
+                const availableH = wrapper.clientHeight - 32;
+                const scaleX = availableW / STATE.format.w;
+                const scaleY = availableH / STATE.format.h;
+                const scale = Math.min(scaleX, scaleY, 1); 
+                
+                container.style.transform = `scale(${scale})`;
+            }
+        }
+        
+        function setFormat(fmt) { const m={'9:16':{w:360,h:640,pad:30,fontSize:40},'4:3':{w:640,h:480,pad:40,fontSize:38},'1:1':{w:500,h:500,pad:40,fontSize:46}}; STATE.format=m[fmt]; resizeCanvas(); }
+        
+        function setBackground(t,v) {
+            STATE.bgType=t; STATE.bgValue=v;
+            const i=document.getElementById('bgImgDisplay'), vid=document.getElementById('bgVidDisplay'), c=document.getElementById('bgColorDisplay');
+            i.classList.add('hidden'); vid.classList.add('hidden'); c.classList.add('hidden'); vid.pause();
+            if(t==='image'){i.src=v;i.classList.remove('hidden');}else if(t==='video'){vid.src=v;vid.classList.remove('hidden');vid.play();}else{c.style.backgroundColor=v;c.classList.remove('hidden');}
+        }
+        function handleBgUpload(i,t){const f=i.files[0];if(f)setBackground(t,URL.createObjectURL(f));}
+        
+        function updateTexture(){
+            const v=document.getElementById('textureSelect').value, o=document.getElementById('textureOverlay');
+            o.className='absolute inset-0 pointer-events-none z-10 opacity-30 ';
+            if(v==='paper')o.style.backgroundImage='url("https://www.transparenttextures.com/patterns/cream-paper.png")';
+            else if(v==='crt')o.classList.add('scanlines'); 
+            else if(v==='noise')o.classList.add('noise-overlay');
+            else o.style.backgroundImage='none';
+        }
+        function toggleSFX(){STATE.sfxEnabled=!STATE.sfxEnabled; document.getElementById('sfxBtn').className=STATE.sfxEnabled?"bg-green-500/10 border border-green-500/30 text-green-400 rounded-lg p-2 text-xs font-bold flex items-center justify-center gap-2 transition":"bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-2 text-xs font-bold flex items-center justify-center gap-2 transition"; document.getElementById('sfxBtn').innerHTML=STATE.sfxEnabled?'<i data-lucide="volume-2" class="w-3 h-3"></i> SFX: ON':'<i data-lucide="volume-x" class="w-3 h-3"></i> SFX: OFF'; lucide.createIcons();}
+        function updateColor(t,v){STATE.colors[t]=v;document.getElementById(t==='main'?'mainColorPreview':'highColorPreview').style.backgroundColor=v;}
+        async function handleAssetUpload(i){const f=i.files[0],k=document.getElementById('assetName').value.trim().toLowerCase(); if(f&&k){const r=new FileReader();r.onload=e=>{STATE.assets[k]=e.target.result;renderAssets();saveAssets();};r.readAsDataURL(f);}}
+        function renderAssets(){const d=document.getElementById('assetList');d.innerHTML='';Object.keys(STATE.assets).forEach(k=>{d.innerHTML+=`<div class="asset-chip"><img src="${STATE.assets[k]}"><span>${k}</span><button onclick="deleteAsset('${k}')" class="ml-1">×</button></div>`;});}
+        window.deleteAsset=(k)=>{delete STATE.assets[k];renderAssets();saveAssets();};
+        function saveAssets(){try{localStorage.setItem('vs_assets',JSON.stringify(STATE.assets));}catch(e){}}
+        function loadAssets(){try{STATE.assets=JSON.parse(localStorage.getItem('vs_assets')||'{}');renderAssets();}catch(e){}}
+        async function handleFontUpload(i){const f=i.files[0];if(f){const r=new FileReader();r.onload=e=>{const n=f.name.split('.')[0];new FontFace(n,`url(${e.target.result})`).load().then(x=>{document.fonts.add(x);addFontOption(n);saveFont(n,e.target.result);});};r.readAsDataURL(f);}}
+        function addFontOption(n){const g=document.getElementById('customFontGroup');if(![...g.options].some(o=>o.value===n)){const o=document.createElement('option');o.text=n;o.value=n;g.appendChild(o);document.getElementById('fontSelect').value=n;}}
+        function saveFont(n,d){let s=JSON.parse(localStorage.getItem('vs_fonts')||'[]');if(!s.some(x=>x.name===n)){s.push({name:n,data:d});localStorage.setItem('vs_fonts',JSON.stringify(s));}}
+        function loadSavedFonts(){try{JSON.parse(localStorage.getItem('vs_fonts')||'[]').forEach(f=>{new FontFace(f.name,`url(${f.data})`).load().then(l=>{document.fonts.add(l);addFontOption(f.name);});});}catch(e){}}
+        
+        function loadVoices(){
+            const s=document.getElementById('voiceSelect');
+            const currentSelection = s.value;
+            s.innerHTML='';
+            window.speechSynthesis.getVoices().forEach(v=>{
+                s.innerHTML+=`<option value="${v.name}">${v.name} (${v.lang})</option>`;
+            });
+            if (currentSelection && Array.from(s.options).some(o => o.value === currentSelection)) {
+                s.value = currentSelection;
+            }
+        }
+        
+        // --- DIRECT BACKGROUND EXPORT ---
+        async function exportWithAudio() {
+            if (STATE.isExporting) return;
+            STATE.isExporting = true;
+
+            let tracks = [];
+            let canvasStream;
+            try { canvasStream = canvas.captureStream(30); } 
+            catch(e) { STATE.isExporting = false; return alert("Canvas recording not supported."); }
+            tracks.push(canvasStream.getVideoTracks()[0]);
+
+            let audioCtx = null;
+            let micStream = null;
+            let desktopAudioStream = null;
+
+            if (STATE.voiceMode === 'tts') {
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent);
+                if (!isMobile && navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+                    alert("Desktop TTS Export:\nPlease select 'THIS TAB' and make sure 'Share Audio' is CHECKED to record the AI Voice.");
+                    try {
+                        desktopAudioStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true, preferCurrentTab: true });
+                        if (desktopAudioStream.getAudioTracks().length > 0) {
+                            tracks.push(desktopAudioStream.getAudioTracks()[0]);
+                        } else {
+                            alert("You didn't check 'Share Audio'. Video will be silent.");
+                        }
+                    } catch(e) { console.warn("Screen share denied"); }
+                } else {
+                    const confirmMic = confirm("MOBILE TTS WORKAROUND:\n\nBrowsers block internal recording of System AI voices.\n\nTo record the voice, we will use your MICROPHONE to listen to your phone's speaker.\n\n1. Turn your volume UP!\n2. Stay quiet.\n3. Click OK to allow mic access.");
+                    if (confirmMic) {
+                        try {
+                            micStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false } });
+                            if (micStream.getAudioTracks().length > 0) tracks.push(micStream.getAudioTracks()[0]);
+                        } catch(e) { alert("Microphone denied. Exporting silently."); }
+                    }
+                }
+            }
+
+            alert("Starting Export...\nThe video will play and record automatically. Please wait for the download.");
+            if (STATE.isPlaying) stopPreview();
+            await startPreview();
+
+            setTimeout(() => {
+                if (STATE.currentAudio && STATE.voiceMode !== 'tts') {
+                    try {
+                        const AudioContext = window.AudioContext || window.webkitAudioContext;
+                        audioCtx = new AudioContext();
+                        const dest = audioCtx.createMediaStreamDestination();
+                        const source = audioCtx.createMediaElementSource(STATE.currentAudio);
+                        source.connect(dest);
+                        source.connect(audioCtx.destination);
+                        if (dest.stream.getAudioTracks().length > 0) tracks.push(dest.stream.getAudioTracks()[0]);
+                    } catch(e) { console.warn("Audio capture failed", e); }
+                }
+
+                const combinedStream = new MediaStream(tracks);
+                
+                let mimeType = '';
+                if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) mimeType = 'video/webm;codecs=vp9';
+                else if (MediaRecorder.isTypeSupported('video/webm')) mimeType = 'video/webm';
+                else if (MediaRecorder.isTypeSupported('video/mp4')) mimeType = 'video/mp4';
+
+                let recorder;
+                try { recorder = new MediaRecorder(combinedStream, mimeType ? { mimeType } : undefined); } 
+                catch(e) { STATE.isExporting = false; return alert("MediaRecorder failed."); }
+
+                const chunks = [];
+                recorder.ondataavailable = e => { if(e.data.size > 0) chunks.push(e.data); };
+                
+                recorder.onstop = () => {
+                    const blob = new Blob(chunks, { type: recorder.mimeType || 'video/mp4' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = `ViralStudio_Export.${(recorder.mimeType && recorder.mimeType.includes('webm')) ? 'webm' : 'mp4'}`;
+                    document.body.appendChild(a);
+                    a.click();
+                    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+                    
+                    if (micStream) micStream.getTracks().forEach(t => t.stop());
+                    if (desktopAudioStream) desktopAudioStream.getTracks().forEach(t => t.stop());
+                    if (audioCtx) audioCtx.close();
+                    STATE.isExporting = false;
+                };
+
+                recorder.start();
+
+                const oldStop = stopPreview;
+                stopPreview = () => {
+                    if (recorder.state === 'recording') recorder.stop();
+                    oldStop();
+                    stopPreview = oldStop; 
+                };
+
+            }, 500);
+        }
+        
+        init();
+        window.addEventListener('resize', resizeCanvas);
+    </script>
+</body>
+</html>
