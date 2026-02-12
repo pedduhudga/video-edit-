@@ -444,7 +444,6 @@
             STATE.recognition.interimResults = true;
             STATE.recognition.lang = document.getElementById('dictationLang').value || 'en-US';
 
-            // Store strictly what was in the box before this session started
             STATE.dictationBaseline = textArea.value;
 
             STATE.recognition.onstart = () => {
@@ -456,27 +455,14 @@
             };
 
             STATE.recognition.onresult = (event) => {
-                let finalChunk = '';
-                let interimChunk = '';
-                
-                // Only process the chunks that have changed in this event
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) {
-                        finalChunk += event.results[i][0].transcript;
-                    } else {
-                        interimChunk += event.results[i][0].transcript;
-                    }
+                // Reconstruct the entire session's transcript from scratch every time to prevent duplicate appends
+                let sessionTranscript = '';
+                for (let i = 0; i < event.results.length; ++i) {
+                    sessionTranscript += event.results[i][0].transcript;
                 }
                 
-                // If we get a final chunk, permanently append it to the baseline
-                if (finalChunk) {
-                    let pad = (STATE.dictationBaseline.length > 0 && !STATE.dictationBaseline.endsWith(' ') && !STATE.dictationBaseline.endsWith('\n') && !finalChunk.startsWith(' ')) ? ' ' : '';
-                    STATE.dictationBaseline += pad + finalChunk;
-                }
-                
-                // Show the permanent baseline + the temporary interim chunk being guessed right now
-                let padInt = (STATE.dictationBaseline.length > 0 && !STATE.dictationBaseline.endsWith(' ') && !STATE.dictationBaseline.endsWith('\n') && !interimChunk.startsWith(' ')) ? ' ' : '';
-                textArea.value = STATE.dictationBaseline + (interimChunk ? padInt + interimChunk : '');
+                let pad = (STATE.dictationBaseline.length > 0 && !STATE.dictationBaseline.endsWith(' ') && !STATE.dictationBaseline.endsWith('\n') && !sessionTranscript.startsWith(' ')) ? ' ' : '';
+                textArea.value = STATE.dictationBaseline + pad + sessionTranscript;
                 textArea.scrollTop = textArea.scrollHeight;
             };
 
