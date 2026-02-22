@@ -17,6 +17,17 @@
             background-color: #050505;
             color: #fff;
             overflow: hidden;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Viral Vignette Overlay */
+        .vignette-overlay {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at center, transparent 30%, rgba(0, 0, 0, 0.6) 100%);
+            pointer-events: none;
+            z-index: 5;
         }
 
         ::-webkit-scrollbar {
@@ -225,7 +236,8 @@
     </style>
 </head>
 
-<body class="flex flex-col-reverse md:flex-row h-[100dvh] w-screen bg-[#050505] text-white overflow-hidden">
+<body class="flex flex-col-reverse md:flex-row h-[100dvh] w-screen bg-[#050505] text-white overflow-hidden relative">
+    <div class="vignette-overlay"></div>
 
     <!-- SIDEBAR -->
     <div
@@ -249,397 +261,672 @@
         <div class="flex-1 overflow-y-auto p-4 md:p-5 space-y-6 custom-scroll">
 
             <!-- 1. FORMAT & BACKGROUND -->
-            <div class="space-y-3">
-                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                    <i data-lucide="layout" class="w-3 h-3"></i> 1. Format & Background
-                </label>
-                <div class="flex flex-wrap gap-2 mb-2">
-                    <button onclick="setFormat('9:16')" id="fmt916"
-                        class="flex-1 p-2 rounded-lg border border-white/10 text-[10px] font-bold text-gray-400 hover:bg-white/5 transition active-format">📱
-                        9:16</button>
-                    <button onclick="setFormat('4:3')" id="fmt43"
-                        class="flex-1 p-2 rounded-lg border border-white/10 text-[10px] font-bold text-gray-400 hover:bg-white/5 transition">📺
-                        4:3</button>
-                    <button onclick="setFormat('1:1')" id="fmt11"
-                        class="flex-1 p-2 rounded-lg border border-white/10 text-[10px] font-bold text-gray-400 hover:bg-white/5 transition">🔲
-                        1:1</button>
-                    <button onclick="customFormat()" id="fmtCustom"
-                        class="flex-1 p-2 rounded-lg border border-white/10 text-[10px] font-bold text-gray-400 hover:bg-white/5 transition">⚙️
-                        Custom</button>
-                </div>
+            <details class="bg-[#151517] rounded-xl border border-white/10 group mb-3 shadow-md" open>
+                <summary
+                    class="p-3 cursor-pointer list-none flex items-center justify-between font-bold text-[11px] text-gray-300 uppercase tracking-wider select-none outline-none hover:text-white transition">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="layout" class="w-4 h-4 text-purple-400"></i> 1. Format & Background
+                    </div>
+                    <i data-lucide="chevron-down"
+                        class="w-4 h-4 text-gray-500 group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-3 pb-3 space-y-3 border-t border-white/5 pt-3">
+                    <div class="flex flex-wrap gap-2 mb-2">
+                        <button onclick="setFormat('9:16')" id="fmt916"
+                            class="flex-1 p-2 rounded-lg border border-white/10 text-[10px] font-bold text-gray-400 hover:bg-white/5 transition active-format">📱
+                            9:16</button>
+                        <button onclick="setFormat('4:3')" id="fmt43"
+                            class="flex-1 p-2 rounded-lg border border-white/10 text-[10px] font-bold text-gray-400 hover:bg-white/5 transition">📺
+                            4:3</button>
+                        <button onclick="setFormat('1:1')" id="fmt11"
+                            class="flex-1 p-2 rounded-lg border border-white/10 text-[10px] font-bold text-gray-400 hover:bg-white/5 transition">🔲
+                            1:1</button>
+                        <button onclick="customFormat()" id="fmtCustom"
+                            class="flex-1 p-2 rounded-lg border border-white/10 text-[10px] font-bold text-gray-400 hover:bg-white/5 transition">⚙️
+                            Custom</button>
+                    </div>
 
-                <div class="p-3 bg-[#151517] rounded-xl border border-white/5 space-y-3">
-                    <div class="grid grid-cols-5 gap-2">
-                        <div class="col-span-1 relative group aspect-square">
-                            <input type="color" id="bgColorPicker" value="#000000"
-                                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                oninput="setBackground('color', this.value)">
-                            <div
-                                class="w-full h-full rounded-lg border border-white/20 flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-900 group-hover:border-purple-500 transition">
-                                <i data-lucide="palette" class="w-4 h-4 text-white"></i>
+                    <div class="p-3 bg-[#151517] rounded-xl border border-white/5 space-y-3">
+                        <div class="grid grid-cols-5 gap-2">
+                            <div class="col-span-1 relative group aspect-square">
+                                <input type="color" id="bgColorPicker" value="#000000"
+                                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                    oninput="setBackground('color', this.value)">
+                                <div
+                                    class="w-full h-full rounded-lg border border-white/20 flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-900 group-hover:border-purple-500 transition">
+                                    <i data-lucide="palette" class="w-4 h-4 text-white"></i>
+                                </div>
+                            </div>
+                            <button onclick="setBackground('color', '#000000')"
+                                class="aspect-square rounded-lg bg-black border border-white/20 hover:scale-105 transition"></button>
+                            <button onclick="setBackground('color', '#ffffff')"
+                                class="aspect-square rounded-lg bg-white border border-white/20 hover:scale-105 transition"></button>
+                            <button
+                                onclick="setBackground('image', 'https://www.transparenttextures.com/patterns/cream-paper.png')"
+                                class="aspect-square rounded-lg border border-white/20 hover:scale-105 transition relative overflow-hidden">
+                                <img src="https://www.transparenttextures.com/patterns/cream-paper.png"
+                                    class="w-full h-full object-cover opacity-50">
+                            </button>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="document.getElementById('bgImgUpload').click()"
+                                class="flex-1 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] flex items-center justify-center gap-2 transition">
+                                <i data-lucide="image" class="w-3 h-3"></i> Base Img
+                            </button>
+                            <button onclick="document.getElementById('bgVidUpload').click()"
+                                class="flex-1 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] flex items-center justify-center gap-2 transition">
+                                <i data-lucide="video" class="w-3 h-3"></i> Base Vid
+                            </button>
+                        </div>
+                        <input type="file" id="bgImgUpload" accept="image/*" onchange="handleBgUpload(this, 'image')">
+                        <input type="file" id="bgVidUpload" accept="video/*" onchange="handleBgUpload(this, 'video')">
+                    </div>
+                </div>
+            </details>
+
+            <!-- 2. SCRIPT / STORYBOARD TOGGLE -->
+            <details class="bg-[#151517] rounded-xl border border-white/10 group mb-3 shadow-md" open>
+                <summary
+                    class="p-3 cursor-pointer list-none flex items-center justify-between font-bold text-[11px] text-gray-300 uppercase tracking-wider select-none outline-none hover:text-white transition">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="clapperboard" class="w-4 h-4 text-purple-400"></i> 2. Storyboard & Script
+                    </div>
+                    <i data-lucide="chevron-down"
+                        class="w-4 h-4 text-gray-500 group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-3 pb-3 space-y-3 border-t border-white/5 pt-3">
+                    <div class="flex justify-between items-end">
+
+                        <div class="flex bg-black rounded-lg border border-white/10 p-0.5">
+                            <button onclick="setEditorMode('script')" id="modeScript"
+                                class="px-2 py-0.5 text-[9px] font-bold rounded bg-gray-700 text-white transition">📝
+                                Script</button>
+                            <button onclick="setEditorMode('story')" id="modeStory"
+                                class="px-2 py-0.5 text-[9px] font-bold rounded text-gray-500 hover:text-white transition">🎬
+                                Visual Storyboard</button>
+                        </div>
+                    </div>
+
+                    <!-- RAW SCRIPT EDITOR -->
+                    <div id="rawScriptContainer">
+                        <div class="flex gap-2 mb-2 items-center">
+                            <select id="dictationLang" onchange="updateDictationLang()"
+                                class="bg-[#151517] text-[10px] border border-white/10 rounded-lg p-1 text-gray-400 outline-none cursor-pointer hover:border-purple-500 transition">
+                                <option value="en-US">🇺🇸 Eng</option>
+                                <option value="kn-IN">🇮🇳 Kan</option>
+                                <option value="hi-IN">🇮🇳 Hin</option>
+                            </select>
+                            <button onclick="toggleDictation()" id="micBtn"
+                                class="text-[10px] px-3 py-1 bg-white/5 text-gray-300 border border-white/10 rounded-full hover:bg-white/10 flex items-center gap-1.5 transition">
+                                <i data-lucide="mic" class="w-3 h-3"></i> Speak
+                            </button>
+                            <div class="h-4 w-px bg-white/10 mx-1"></div>
+                            <button
+                                onclick="document.getElementById('aiScriptPanel').classList.toggle('hidden'); toggleAiApiSettings();"
+                                class="text-[10px] px-3 py-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold rounded-full shadow hover:opacity-90 flex items-center gap-1.5 transition ml-auto">
+                                <i data-lucide="sparkles" class="w-3 h-3"></i> AI Script
+                            </button>
+                        </div>
+
+                        <!-- AI SCRIPT PANEL -->
+                        <div id="aiScriptPanel"
+                            class="hidden bg-[#101012] border border-blue-500/30 rounded-xl p-3 mb-2 space-y-2 relative overflow-hidden">
+                            <div class="absolute inset-0 bg-blue-500/5 pointer-events-none"></div>
+                            <div class="flex items-center gap-2 relative z-10">
+                                <select id="aiProvider"
+                                    class="bg-black text-[10px] border border-white/10 rounded p-1 text-gray-300 outline-none cursor-pointer"
+                                    onchange="toggleAiApiSettings()">
+                                    <optgroup label="Google Gemini">
+                                        <option value="gemini:gemini-2.5-flash">Gemini 2.5 Flash</option>
+                                        <option value="gemini:gemini-2.0-flash">Gemini 2.0 Flash</option>
+                                        <option value="gemini:gemini-2.5-pro">Gemini 2.5 Pro</option>
+                                    </optgroup>
+                                    <optgroup label="Groq">
+                                        <option value="groq:llama-3.1-8b-instant">Llama 3.1 8B</option>
+                                        <option value="groq:llama-3.3-70b-versatile">Llama 3.3 70B</option>
+                                    </optgroup>
+                                </select>
+                                <input type="password" id="aiApiKey" placeholder="API Key"
+                                    class="flex-1 bg-black text-[10px] border border-white/10 rounded p-1 text-gray-300">
+                                <button onclick="saveAiKey()"
+                                    class="text-[9px] px-3 py-1 bg-white/10 rounded hover:bg-white/20 text-gray-300 font-bold transition">Save
+                                    Key</button>
+                            </div>
+                            <textarea id="aiPrompt"
+                                class="w-full bg-black border border-white/10 rounded p-2 text-xs text-gray-300 resize-none h-16 relative z-10 font-[Poppins]"
+                                placeholder="e.g., Write a punchy 15-second motivational hook about discipline. Use [bg=dark] and formatting tags (*word*)."></textarea>
+                            <div class="flex gap-2 relative z-10 mt-1 pb-1">
+                                <button onclick="generateAiScript(false)" id="aiGenBtn"
+                                    class="flex-1 py-1.5 bg-blue-600/20 text-blue-400 font-bold text-[10px] rounded border border-blue-600/50 hover:bg-blue-600 hover:text-white transition flex items-center justify-center gap-1">
+                                    <i data-lucide="zap" class="w-3 h-3"></i> AI Write Target Script
+                                </button>
+                                <button onclick="generateAiScript(true)" id="aiRephraseBtn"
+                                    class="flex-1 py-1.5 bg-purple-600/20 text-purple-400 font-bold text-[10px] rounded border border-purple-600/50 hover:bg-purple-600 hover:text-white transition flex items-center justify-center gap-1">
+                                    <i data-lucide="refresh-cw" class="w-3 h-3"></i> ✨ Auto-Format to Viral
+                                </button>
                             </div>
                         </div>
-                        <button onclick="setBackground('color', '#000000')"
-                            class="aspect-square rounded-lg bg-black border border-white/20 hover:scale-105 transition"></button>
-                        <button onclick="setBackground('color', '#ffffff')"
-                            class="aspect-square rounded-lg bg-white border border-white/20 hover:scale-105 transition"></button>
-                        <button
-                            onclick="setBackground('image', 'https://www.transparenttextures.com/patterns/cream-paper.png')"
-                            class="aspect-square rounded-lg border border-white/20 hover:scale-105 transition relative overflow-hidden">
-                            <img src="https://www.transparenttextures.com/patterns/cream-paper.png"
-                                class="w-full h-full object-cover opacity-50">
+
+                        <textarea id="scriptInput"
+                            class="w-full bg-[#151517] border border-white/10 rounded-xl p-3 text-sm h-28 focus:border-purple-500 outline-none resize-none text-gray-200 font-medium placeholder-gray-600 leading-relaxed font-[Poppins] transition-all"
+                            placeholder="Type your script (one line per scene). Use *word* for highlight, **word** for huge, [top]/[bottom], [bg=name], [=broll]..."></textarea>
+                        <details class="group mt-1">
+                            <summary
+                                class="text-[9px] text-purple-400 cursor-pointer hover:text-purple-300 select-none">
+                                Formatting help</summary>
+                            <div class="mt-1 p-2 bg-black/40 rounded text-[9px] text-gray-400 space-y-0.5">
+                                <div><strong class="text-gray-300">*text*</strong> = highlight &nbsp; <strong
+                                        class="text-gray-300">**text**</strong> = huge</div>
+                                <div><strong class="text-gray-300">[top]</strong> / <strong
+                                        class="text-gray-300">[bottom]</strong> = align &nbsp; <strong
+                                        class="text-gray-300">[bg=key]</strong> = background</div>
+                                <div><strong class="text-gray-300">[=key]</strong> = center B-roll &nbsp; <strong
+                                        class="text-gray-300">[+key]</strong> = side pin</div>
+                            </div>
+                        </details>
+                    </div>
+
+                    <!-- STORYBOARD EDITOR -->
+                    <div id="storyboardContainer" class="hidden">
+                        <div class="flex gap-2 mb-2">
+                            <button onclick="importScriptToStoryboard()"
+                                class="flex-1 py-1.5 bg-blue-900/30 border border-blue-600/30 text-blue-300 text-[9px] font-bold rounded hover:bg-blue-800 transition flex items-center justify-center gap-1.5">
+                                <i data-lucide="import" class="w-3 h-3"></i> Sync From Text
+                            </button>
+                            <button onclick="toggleStoryboardMagic()"
+                                class="flex-1 py-1.5 bg-yellow-900/30 border border-yellow-600/50 text-yellow-500 text-[9px] font-bold rounded hover:bg-yellow-800 hover:text-white transition flex items-center justify-center gap-1.5">
+                                <i data-lucide="wand-2" class="w-3 h-3"></i> Advanced Magic
+                            </button>
+                        </div>
+
+                        <!-- BULK MAGIC PANEL -->
+                        <div id="storyboardMagicPanel"
+                            class="hidden bg-[#101012] border border-yellow-500/30 rounded-xl p-3 mb-2 space-y-2 relative overflow-hidden">
+                            <div class="absolute inset-0 bg-yellow-500/5 pointer-events-none"></div>
+                            <h4
+                                class="text-[9px] text-yellow-500 font-bold uppercase tracking-wider relative z-10 flex items-center gap-1.5">
+                                <i data-lucide="zap" class="w-3 h-3"></i> Advanced Media AI
+                            </h4>
+
+                            <div class="flex items-center gap-2 relative z-10">
+                                <select id="bulkBgSelect"
+                                    class="bg-black text-[9px] border border-white/10 rounded p-1 flex-1 text-gray-300">
+                                    <option value="">Select Asset to Bulk Apply...</option>
+                                    <!-- Populated dynamically via JS renderAssets() or manually on open -->
+                                </select>
+                                <button onclick="bulkApplyBackground()"
+                                    class="text-[9px] px-2 py-1 bg-yellow-600/20 text-yellow-400 font-bold rounded hover:bg-yellow-600 hover:text-white border border-yellow-600/50 transition">
+                                    Set All BG
+                                </button>
+                            </div>
+
+                            <div class="flex gap-2 relative z-10">
+                                <button onclick="autoSprinkleBroll()"
+                                    class="flex-1 text-[9px] px-2 py-1.5 bg-blue-600/20 text-blue-400 font-bold rounded hover:bg-blue-600 hover:text-white border border-blue-600/50 transition">
+                                    🤖 Auto-Sprinkle B-Roll
+                                </button>
+                                <button onclick="autoLayoutAll()"
+                                    class="flex-1 text-[9px] px-2 py-1.5 bg-purple-600/20 text-purple-400 font-bold rounded hover:bg-purple-600 hover:text-white border border-purple-600/50 transition">
+                                    🪄 Auto-Layout All
+                                </button>
+                                <button onclick="clearAllMedia()"
+                                    class="flex-1 text-[9px] px-2 py-1.5 bg-red-600/20 text-red-400 font-bold rounded hover:bg-red-600 hover:text-white border border-red-600/50 transition">
+                                    🗑️ Clear Media
+                                </button>
+                            </div>
+                            <p class="text-[7px] text-gray-500 relative z-10 mt-1 leading-tight">Pro tip: Upload media
+                                in the 'Assets / B-Roll' tab first, then open this menu to instantly distribute them
+                                across 50+ sentences.</p>
+                        </div>
+
+                        <div id="storyScenes" class="space-y-2 mb-2"></div>
+                        <button onclick="addStoryScene()"
+                            class="w-full py-2 bg-purple-600/20 border border-purple-500/50 text-purple-300 text-[10px] font-bold rounded-lg hover:bg-purple-600 hover:text-white transition flex items-center justify-center gap-2">
+                            <i data-lucide="plus" class="w-3 h-3"></i> ADD NEW SCENE
+                        </button>
+                    </div>
+
+                    <!-- DUAL ANIMATION DROPDOWNS -->
+                    <select id="animSelectClassic" onchange="STATE.animation = this.value"
+                        class="w-full bg-[#151517] text-[11px] border border-white/10 rounded-lg p-2 outline-none text-purple-300 font-bold focus:border-purple-500 cursor-pointer mt-2">
+                        <optgroup label="Global Default Animation">
+                            <option value="elastic">🚀 Elastic Pop (Default)</option>
+                            <option value="kinetic">💨 Kinetic Whip</option>
+                            <option value="slide">⬆️ Slide Up</option>
+                            <option value="glitch">⚡ Glitch</option>
+                            <option value="cinema">🎬 Cinema Fade</option>
+                            <option value="spin">🌪️ Spin In</option>
+                            <option value="zoom">🔎 Zoom Slam</option>
+                            <option value="drop">⬇️ Gravity Drop</option>
+                            <option value="blur">🌫️ Blur Reveal</option>
+                            <option value="shake">🫨 Shake Impact</option>
+                            <option value="flip">🔄 3D Flip</option>
+                            <option value="wave">🌊 Gentle Wave</option>
+                            <option value="mix" class="text-yellow-400">🔀 Mix (Random)</option>
+                        </optgroup>
+                    </select>
+
+                    <div class="mt-2 p-3 bg-blue-600/10 border border-blue-500/30 rounded-xl space-y-2">
+                        <button onclick="applyViralPreset()"
+                            class="w-full py-2 bg-blue-600 text-white font-black text-[11px] rounded-lg shadow-lg hover:bg-blue-500 transition-all flex items-center justify-center gap-2 uppercase tracking-widest">
+                            <i data-lucide="zap" class="w-3.5 h-3.5 fill-current"></i> Apply Super Viral Style
+                        </button>
+                    </div>
+
+                    <select id="animSelectPro" onchange="STATE.proAnimation = this.value"
+                        class="hidden w-full bg-[#151517] text-[11px] border border-white/10 rounded-lg p-2 outline-none text-yellow-400 font-bold focus:border-yellow-500 cursor-pointer mt-2">
+                        <optgroup label="Pro Animation Style">
+                            <option value="hormozi">🔥 Hormozi Pop (Viral)</option>
+                            <option value="liquid">💧 Liquid Color Fill</option>
+                            <option value="rgb">🔴 RGB Chromatic Glitch</option>
+                            <option value="reveal">🪟 Mask Reveal</option>
+                            <option value="bounce">🏀 Bouncy Drop</option>
+                            <option value="squash">💥 Squash & Stretch</option>
+                            <option value="marker">🖍️ Neon Highlighter</option>
+                        </optgroup>
+                    </select>
+
+                    <!-- TYPOGRAPHY -->
+                    <div class="space-y-2">
+                        <label
+                            class="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                            <i data-lucide="type" class="w-3 h-3"></i> Typography
+                        </label>
+                        <div class="p-3 bg-[#151517] rounded-xl border border-white/5 space-y-2">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-[10px] text-gray-400">Text size</span>
+                                <span id="fontSizeValue" class="text-xs font-bold text-purple-300">40px</span>
+                            </div>
+                            <input type="range" id="fontSizeSlider" min="12" max="120" step="2" value="40"
+                                class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                                oninput="updateFontSize(this.value)" title="Adjust title text size">
+                            <div class="flex flex-wrap gap-1.5">
+                                <button type="button" onclick="setFontSizePreset(24)"
+                                    class="px-2 py-1 text-[9px] font-bold rounded bg-white/5 border border-white/10 hover:border-purple-500 hover:bg-purple-500/20 transition"
+                                    title="Small captions">Caption</button>
+                                <button type="button" onclick="setFontSizePreset(40)"
+                                    class="px-2 py-1 text-[9px] font-bold rounded bg-white/5 border border-white/10 hover:border-purple-500 hover:bg-purple-500/20 transition"
+                                    title="Default body">Body</button>
+                                <button type="button" onclick="setFontSizePreset(56)"
+                                    class="px-2 py-1 text-[9px] font-bold rounded bg-white/5 border border-white/10 hover:border-purple-500 hover:bg-purple-500/20 transition"
+                                    title="Large titles">Title</button>
+                                <div class="flex items-center justify-between gap-2 mt-2 pt-2 border-t border-white/5">
+                                    <span class="text-[10px] text-blue-400 font-bold uppercase tracking-tighter">Viral
+                                        Pacing</span>
+                                    <span id="pacingValue" class="text-xs font-bold text-blue-300">1 Word</span>
+                                </div>
+                                <input type="range" id="pacingSlider" min="1" max="6" step="1" value="3"
+                                    class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                                    oninput="updatePacing(this.value)"
+                                    title="How many words appear at once in Pro Mode">
+                                <p class="text-[8px] text-gray-500">1 = Hormozi Style, 3 = Professional, 6 = Simple.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2 items-center mt-2">
+                            <select id="fontSelect"
+                                class="flex-1 bg-[#151517] text-[11px] border border-white/10 rounded-lg p-2 outline-none text-gray-300">
+                                <optgroup label="Kannada">
+                                    <option value="Noto Sans Kannada">Noto Sans</option>
+                                    <option value="Noto Serif Kannada">Noto Serif</option>
+                                    <option value="Baloo Tamma 2">Baloo Tamma</option>
+                                    <option value="Hubballi">Hubballi</option>
+                                    <option value="Tiro Kannada">Tiro Kannada</option>
+                                    <option value="Anek Kannada">Anek Kannada</option>
+                                </optgroup>
+                                <optgroup label="English">
+                                    <option value="Montserrat">Montserrat</option>
+                                    <option value="Poppins">Poppins</option>
+                                    <option value="Permanent Marker">Marker</option>
+                                </optgroup>
+                                <optgroup label="My Fonts" id="customFontGroup"></optgroup>
+                            </select>
+                            <button onclick="document.getElementById('fontUpload').click()"
+                                class="p-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10"
+                                title="Upload Font"><i data-lucide="upload-cloud" class="w-4 h-4"></i></button>
+                            <input type="file" id="fontUpload" accept=".ttf,.otf,.woff"
+                                onchange="handleFontUpload(this)">
+                            <div class="color-wrapper" title="Text Color">
+                                <div class="w-full h-full bg-white" id="mainColorPreview"
+                                    style="background-color: #ffffff;">
+                                </div><input type="color" value="#ffffff" oninput="updateColor('main', this.value)"
+                                    onchange="updateColor('main', this.value)">
+                            </div>
+                            <div class="color-wrapper" title="Highlight Color">
+                                <div class="w-full h-full bg-red-500" id="highColorPreview"
+                                    style="background-color: #ff3b3b;">
+                                </div><input type="color" value="#ff3b3b" oninput="updateColor('high', this.value)"
+                                    onchange="updateColor('high', this.value)">
+                            </div>
+                        </div>
+                    </div>
+            </details>
+
+            <!-- 3. OVERLAY & ASSETS -->
+            <details class="bg-[#151517] rounded-xl border border-white/10 group mb-3 shadow-md">
+                <summary
+                    class="p-3 cursor-pointer list-none flex items-center justify-between font-bold text-[11px] text-gray-300 uppercase tracking-wider select-none outline-none hover:text-white transition">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="image" class="w-4 h-4 text-purple-400"></i> 3. Assets & Overlay
+                    </div>
+                    <i data-lucide="chevron-down"
+                        class="w-4 h-4 text-gray-500 group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-3 pb-3 space-y-3 border-t border-white/5 pt-3">
+
+                    <!-- FEATURE 1: LIGHT BG PRESETS (Viral WhiteBoard Style) -->
+                    <div class="space-y-1">
+                        <p class="text-[8px] font-bold uppercase text-gray-500 tracking-widest">Quick BG Presets</p>
+                        <div class="flex gap-1 flex-wrap">
+                            <button onclick="applyBgPreset('#FFFFFF','white')"
+                                class="px-2 py-1 text-[8px] rounded border border-white/20 bg-white text-black font-bold hover:scale-105 transition"
+                                title="Pure White">⬜ White</button>
+                            <button onclick="applyBgPreset('#F5F0E8','cream')"
+                                class="px-2 py-1 text-[8px] rounded border border-amber-300/40 font-bold hover:scale-105 transition"
+                                style="background:#F5F0E8;color:#3a2a10" title="Cream Paper">📄 Cream</button>
+                            <button onclick="applyBgPreset('#E8E4F0','lavender')"
+                                class="px-2 py-1 text-[8px] rounded border border-purple-300/40 font-bold hover:scale-105 transition"
+                                style="background:#E8E4F0;color:#3a1a5a" title="Lavender">🟣 Lavender</button>
+                            <button onclick="applyBgPreset('#1a1a2e','dark')"
+                                class="px-2 py-1 text-[8px] rounded border border-white/10 bg-[#1a1a2e] text-white font-bold hover:scale-105 transition"
+                                title="Dark Blue">🌌 Dark</button>
+                            <button onclick="applyBgPreset('#000000','black')"
+                                class="px-2 py-1 text-[8px] rounded border border-white/20 bg-black text-white font-bold hover:scale-105 transition"
+                                title="Black">⬛ Black</button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <select id="textureSelect" onchange="updateTexture()"
+                            class="bg-[#151517] border border-white/10 rounded-lg p-2 text-xs text-white outline-none">
+                            <option value="none">No Overlay</option>
+                            <option value="grid">📐 Dotted Grid (New!)</option>
+                            <option value="paper">📄 Paper Texture</option>
+                            <option value="crt">📺 CRT Scanlines</option>
+                            <option value="noise">🌫️ Film Noise</option>
+                        </select>
+                        <button onclick="toggleSFX()" id="sfxBtn"
+                            class="bg-green-500/10 border border-green-500/30 text-green-400 rounded-lg p-2 text-xs font-bold flex items-center justify-center gap-2 transition">
+                            <i data-lucide="volume-2" class="w-3 h-3"></i> SFX: ON
                         </button>
                     </div>
                     <div class="flex gap-2">
-                        <button onclick="document.getElementById('bgImgUpload').click()"
-                            class="flex-1 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] flex items-center justify-center gap-2 transition">
-                            <i data-lucide="image" class="w-3 h-3"></i> Base Img
-                        </button>
-                        <button onclick="document.getElementById('bgVidUpload').click()"
-                            class="flex-1 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] flex items-center justify-center gap-2 transition">
-                            <i data-lucide="video" class="w-3 h-3"></i> Base Vid
-                        </button>
-                    </div>
-                    <input type="file" id="bgImgUpload" accept="image/*" onchange="handleBgUpload(this, 'image')">
-                    <input type="file" id="bgVidUpload" accept="video/*" onchange="handleBgUpload(this, 'video')">
-                </div>
-            </div>
-
-            <!-- 2. SCRIPT / STORYBOARD TOGGLE -->
-            <div class="space-y-3">
-                <div class="flex justify-between items-end">
-                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                        <i data-lucide="clapperboard" class="w-3 h-3"></i> 2. Storyboard & Script
-                    </label>
-
-                    <div class="flex bg-black rounded-lg border border-white/10 p-0.5">
-                        <button onclick="setEditorMode('script')" id="modeScript"
-                            class="px-2 py-0.5 text-[9px] font-bold rounded bg-gray-700 text-white transition">📝
-                            Script</button>
-                        <button onclick="setEditorMode('story')" id="modeStory"
-                            class="px-2 py-0.5 text-[9px] font-bold rounded text-gray-500 hover:text-white transition">🎬
-                            Visual Storyboard</button>
-                    </div>
-                </div>
-
-                <!-- RAW SCRIPT EDITOR -->
-                <div id="rawScriptContainer">
-                    <div class="flex gap-2 mb-2">
-                        <select id="dictationLang" onchange="updateDictationLang()"
-                            class="bg-[#151517] text-[10px] border border-white/10 rounded-lg p-1 text-gray-400 outline-none cursor-pointer hover:border-purple-500 transition">
-                            <option value="en-US">🇺🇸 Eng</option>
-                            <option value="kn-IN">🇮🇳 Kan</option>
-                            <option value="hi-IN">🇮🇳 Hin</option>
-                        </select>
-                        <button onclick="toggleDictation()" id="micBtn"
-                            class="text-[10px] px-3 py-1 bg-white/5 text-gray-300 border border-white/10 rounded-full hover:bg-white/10 flex items-center gap-1.5 transition">
-                            <i data-lucide="mic" class="w-3 h-3"></i> Speak
-                        </button>
+                        <input type="text" id="assetName" placeholder="Name (optional — auto if empty)"
+                            class="flex-1 bg-[#151517] border border-white/10 rounded px-2 text-xs"
+                            title="Give a short name to use in script, e.g. intro_bg. Leave empty to auto-generate.">
+                        <button onclick="document.getElementById('assetUpload').click()"
+                            class="bg-white/10 rounded px-3 py-1 text-xs border border-white/10 font-bold text-purple-400">Upload
+                            Media</button>
+                        <!-- ALLOW VIDEO IN ASSET UPLOAD FOR DYNAMIC BGS -->
+                        <input type="file" id="assetUpload" accept="image/*,video/*" onchange="handleAssetUpload(this)">
                     </div>
 
-                    <textarea id="scriptInput"
-                        class="w-full bg-[#151517] border border-white/10 rounded-xl p-3 text-sm h-28 focus:border-purple-500 outline-none resize-none text-gray-200 font-medium placeholder-gray-600 leading-relaxed font-[Poppins] transition-all"
-                        placeholder="Type here or use Storyboard..."></textarea>
-                </div>
-
-                <!-- STORYBOARD EDITOR -->
-                <div id="storyboardContainer" class="hidden">
-                    <button onclick="importScriptToStoryboard()"
-                        class="w-full mb-2 py-1.5 bg-blue-900/30 border border-blue-600/30 text-blue-300 text-[10px] font-bold rounded hover:bg-blue-800 transition flex items-center justify-center gap-2">
-                        <i data-lucide="import" class="w-3 h-3"></i> 📥 Import Lines from Script
-                    </button>
-                    <div id="storyScenes" class="space-y-2 mb-2"></div>
-                    <button onclick="addStoryScene()"
-                        class="w-full py-2 bg-purple-600/20 border border-purple-500/50 text-purple-300 text-[10px] font-bold rounded-lg hover:bg-purple-600 hover:text-white transition flex items-center justify-center gap-2">
-                        <i data-lucide="plus" class="w-3 h-3"></i> ADD NEW SCENE
-                    </button>
-                </div>
-
-                <!-- DUAL ANIMATION DROPDOWNS -->
-                <select id="animSelectClassic" onchange="STATE.animation = this.value"
-                    class="w-full bg-[#151517] text-[11px] border border-white/10 rounded-lg p-2 outline-none text-purple-300 font-bold focus:border-purple-500 cursor-pointer mt-2">
-                    <optgroup label="Global Default Animation">
-                        <option value="elastic">🚀 Elastic Pop (Default)</option>
-                        <option value="kinetic">💨 Kinetic Whip</option>
-                        <option value="slide">⬆️ Slide Up</option>
-                        <option value="glitch">⚡ Glitch</option>
-                        <option value="cinema">🎬 Cinema Fade</option>
-                        <option value="spin">🌪️ Spin In</option>
-                        <option value="zoom">🔎 Zoom Slam</option>
-                        <option value="drop">⬇️ Gravity Drop</option>
-                        <option value="blur">🌫️ Blur Reveal</option>
-                        <option value="shake">🫨 Shake Impact</option>
-                        <option value="flip">🔄 3D Flip</option>
-                        <option value="wave">🌊 Gentle Wave</option>
-                        <option value="mix" class="text-yellow-400">🔀 Mix (Random)</option>
-                    </optgroup>
-                </select>
-
-                <select id="animSelectPro" onchange="STATE.proAnimation = this.value"
-                    class="hidden w-full bg-[#151517] text-[11px] border border-white/10 rounded-lg p-2 outline-none text-yellow-400 font-bold focus:border-yellow-500 cursor-pointer mt-2">
-                    <optgroup label="Global Default Animation">
-                        <option value="liquid">💧 Liquid Color Fill</option>
-                        <option value="rgb">🔴 RGB Chromatic Glitch</option>
-                        <option value="reveal">🪟 Cinematic Mask Reveal</option>
-                        <option value="bounce">🏀 Bouncy Gravity Drop</option>
-                        <option value="hormozi">🔥 Hormozi Pop</option>
-                        <option value="squash">💥 Squash & Stretch</option>
-                        <option value="marker">🖍️ Dynamic Highlighter</option>
-                    </optgroup>
-                </select>
-
-                <div class="flex gap-2 items-center mt-2">
-                    <select id="fontSelect"
-                        class="flex-1 bg-[#151517] text-[11px] border border-white/10 rounded-lg p-2 outline-none text-gray-300">
-                        <optgroup label="Kannada">
-                            <option value="Noto Sans Kannada">Noto Sans</option>
-                            <option value="Noto Serif Kannada">Noto Serif</option>
-                            <option value="Baloo Tamma 2">Baloo Tamma</option>
-                            <option value="Hubballi">Hubballi</option>
-                            <option value="Tiro Kannada">Tiro Kannada</option>
-                            <option value="Anek Kannada">Anek Kannada</option>
-                        </optgroup>
-                        <optgroup label="English">
-                            <option value="Montserrat">Montserrat</option>
-                            <option value="Poppins">Poppins</option>
-                            <option value="Permanent Marker">Marker</option>
-                        </optgroup>
-                        <optgroup label="My Fonts" id="customFontGroup"></optgroup>
-                    </select>
-                    <button onclick="document.getElementById('fontUpload').click()"
-                        class="p-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10"
-                        title="Upload Font"><i data-lucide="upload-cloud" class="w-4 h-4"></i></button>
-                    <input type="file" id="fontUpload" accept=".ttf,.otf,.woff" onchange="handleFontUpload(this)">
-                    <div class="color-wrapper" title="Text Color">
-                        <div class="w-full h-full bg-white" id="mainColorPreview" style="background-color: #ffffff;">
-                        </div><input type="color" value="#ffffff" oninput="updateColor('main', this.value)"
-                            onchange="updateColor('main', this.value)">
+                    <!-- FEATURE 2: MASCOT SLOT SYSTEM -->
+                    <div class="p-2 bg-purple-900/10 border border-purple-500/20 rounded-xl space-y-2">
+                        <div class="flex items-center justify-between">
+                            <p
+                                class="text-[9px] font-bold text-purple-300 uppercase tracking-wider flex items-center gap-1">
+                                <i data-lucide="user" class="w-3 h-3"></i> Mascot / Character PIN
+                            </p>
+                            <button onclick="clearMascot()" class="text-[8px] text-red-400 hover:text-red-200">✕
+                                Clear</button>
+                        </div>
+                        <p class="text-[8px] text-gray-500">Upload a transparent PNG (character, sticker, logo). It will
+                            be pinned on screen across all scenes.</p>
+                        <div class="flex gap-2 items-center">
+                            <button onclick="document.getElementById('mascotUpload').click()"
+                                class="flex-1 py-1.5 bg-purple-600/30 border border-purple-500/40 text-purple-300 text-[9px] font-bold rounded hover:bg-purple-600 hover:text-white transition flex items-center justify-center gap-1">
+                                <i data-lucide="upload-cloud" class="w-3 h-3"></i> Upload PNG
+                            </button>
+                            <div id="mascotPreview"
+                                class="w-10 h-10 bg-black/30 border border-white/10 rounded flex items-center justify-center text-[8px] text-gray-500">
+                                None</div>
+                        </div>
+                        <input type="file" id="mascotUpload" accept="image/*" onchange="handleMascotUpload(this)"
+                            class="hidden">
+                        <div class="flex gap-2 items-center">
+                            <span class="text-[8px] text-gray-400">Position</span>
+                            <select id="mascotPosition" onchange="STATE.mascot.position=this.value"
+                                class="flex-1 bg-black border border-white/10 rounded text-[9px] p-1 text-gray-300">
+                                <option value="bottom-left">↙ Bottom Left</option>
+                                <option value="bottom-right">↘ Bottom Right</option>
+                                <option value="top-left">↖ Top Left</option>
+                                <option value="top-right">↗ Top Right</option>
+                                <option value="center-bottom">⬇ Center Bottom</option>
+                            </select>
+                            <span id="mascotSizeVal"
+                                class="text-[8px] text-purple-300 font-bold w-8 text-center">120</span>
+                        </div>
+                        <input type="range" min="40" max="280" value="120" class="w-full h-1.5 accent-purple-500"
+                            oninput="STATE.mascot.scale=parseInt(this.value);document.getElementById('mascotSizeVal').innerText=this.value">
                     </div>
-                    <div class="color-wrapper" title="Highlight Color">
-                        <div class="w-full h-full bg-red-500" id="highColorPreview" style="background-color: #ff3b3b;">
-                        </div><input type="color" value="#ff3b3b" oninput="updateColor('high', this.value)"
-                            onchange="updateColor('high', this.value)">
+
+                    <!-- FEATURE 4: TEXT STYLE (Sticker/Bubble/Glow) -->
+                    <div class="space-y-1">
+                        <p class="text-[8px] font-bold uppercase text-gray-500 tracking-widest">Text Style</p>
+                        <div class="flex gap-1 flex-wrap">
+                            <button onclick="setTextStyle('normal')" id="ts_normal"
+                                class="px-2 py-1 text-[8px] rounded border border-white/20 bg-white/10 text-white font-bold hover:bg-white/20 transition ts-btn ts-active">Normal</button>
+                            <button onclick="setTextStyle('sticker')" id="ts_sticker"
+                                class="px-2 py-1 text-[8px] rounded border border-yellow-500/40 bg-yellow-500/10 text-yellow-300 font-bold hover:bg-yellow-500/30 transition ts-btn">🏷️
+                                Sticker</button>
+                            <button onclick="setTextStyle('bubble')" id="ts_bubble"
+                                class="px-2 py-1 text-[8px] rounded border border-blue-500/40 bg-blue-500/10 text-blue-300 font-bold hover:bg-blue-500/30 transition ts-btn">💬
+                                Bubble</button>
+                            <button onclick="setTextStyle('glow')" id="ts_glow"
+                                class="px-2 py-1 text-[8px] rounded border border-pink-500/40 bg-pink-500/10 text-pink-300 font-bold hover:bg-pink-500/30 transition ts-btn">✨
+                                Neon Glow</button>
+                        </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- 3. OVERLAY & ASSETS -->
-            <div class="space-y-3">
-                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                    <i data-lucide="image" class="w-3 h-3"></i> 3. Assets, BG & B-Roll
-                </label>
-                <div class="grid grid-cols-2 gap-2">
-                    <select id="textureSelect" onchange="updateTexture()"
-                        class="bg-[#151517] border border-white/10 rounded-lg p-2 text-xs text-white outline-none">
-                        <option value="none">No Overlay</option>
-                        <option value="grid">📐 Dotted Grid (New!)</option>
-                        <option value="paper">📄 Paper Texture</option>
-                        <option value="crt">📺 CRT Scanlines</option>
-                        <option value="noise">🌫️ Film Noise</option>
-                    </select>
-                    <button onclick="toggleSFX()" id="sfxBtn"
-                        class="bg-green-500/10 border border-green-500/30 text-green-400 rounded-lg p-2 text-xs font-bold flex items-center justify-center gap-2 transition">
-                        <i data-lucide="volume-2" class="w-3 h-3"></i> SFX: ON
-                    </button>
+                    <!-- ASSET LIST -->
+                    <div id="assetList" class="flex flex-col gap-2 max-h-56 overflow-y-auto custom-scroll pr-1"></div>
                 </div>
-                <div class="flex gap-2">
-                    <input type="text" id="assetName" placeholder="Keyword (e.g. vid1)"
-                        class="flex-1 bg-[#151517] border border-white/10 rounded px-2 text-xs">
-                    <button onclick="document.getElementById('assetUpload').click()"
-                        class="bg-white/10 rounded px-3 py-1 text-xs border border-white/10 font-bold text-purple-400">Upload
-                        Media</button>
-                    <!-- ALLOW VIDEO IN ASSET UPLOAD FOR DYNAMIC BGS -->
-                    <input type="file" id="assetUpload" accept="image/*,video/*" onchange="handleAssetUpload(this)">
-                </div>
-
-                <!-- NEW ASSET LIST GRID WITH INSERT BUTTONS -->
-                <div id="assetList" class="flex flex-col gap-2 max-h-56 overflow-y-auto custom-scroll pr-1"></div>
-            </div>
+            </details>
 
             <!-- 4. VOICE -->
-            <div class="space-y-2">
-                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                    <i data-lucide="mic-2" class="w-3 h-3"></i> 4. Narrator
-                </label>
-                <div class="bg-[#151517] p-2 rounded-xl border border-white/10 space-y-2">
-
-                    <!-- 5 TABS -->
-                    <div class="flex overflow-x-auto border-b border-white/5 no-scrollbar pb-1 gap-1">
-                        <button onclick="setVoiceMode('magic')" id="btnModeMagic"
-                            class="px-3 py-1 text-[10px] font-bold transition tab-active text-yellow-400 whitespace-nowrap">✨
-                            Magic Bypass</button>
-                        <button onclick="setVoiceMode('tts')" id="btnModeTTS"
-                            class="px-3 py-1 text-[10px] font-bold transition tab-inactive whitespace-nowrap">🤖
-                            System</button>
-                        <button onclick="setVoiceMode('rec')" id="btnModeRec"
-                            class="px-3 py-1 text-[10px] font-bold transition tab-inactive whitespace-nowrap">🎙️
-                            Me</button>
-                        <button onclick="setVoiceMode('eleven')" id="btnModeEleven"
-                            class="px-3 py-1 text-[10px] font-bold transition tab-inactive text-purple-400 whitespace-nowrap">🧪
-                            11Labs</button>
-                        <button onclick="setVoiceMode('upload')" id="btnModeUpload"
-                            class="px-3 py-1 text-[10px] font-bold transition tab-inactive whitespace-nowrap">📁
-                            Upload</button>
+            <details class="bg-[#151517] rounded-xl border border-white/10 group mb-3 shadow-md">
+                <summary
+                    class="p-3 cursor-pointer list-none flex items-center justify-between font-bold text-[11px] text-gray-300 uppercase tracking-wider select-none outline-none hover:text-white transition">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="mic-2" class="w-4 h-4 text-purple-400"></i> 4. Narrator
                     </div>
+                    <i data-lucide="chevron-down"
+                        class="w-4 h-4 text-gray-500 group-open:rotate-180 transition-transform"></i>
+                </summary>
+                <div class="px-3 pb-3 space-y-2 border-t border-white/5 pt-3">
+                    <div class="bg-[#151517] p-2 rounded-xl border border-white/10 space-y-2">
 
-                    <!-- MAGIC CLOUD TTS CONTROLS -->
-                    <div id="magicControls" class="space-y-2">
-                        <div class="p-2 bg-yellow-500/10 border border-yellow-500/20 rounded-lg text-center">
-                            <p class="text-[9px] text-yellow-200 mb-2"><strong>Mobile Bypass:</strong> Downloads real
-                                audio files from the cloud so it can be recorded perfectly into your mobile video.</p>
+                        <!-- 5 TABS -->
+                        <div class="flex flex-wrap border-b border-white/5 pb-1 gap-1">
+                            <button onclick="setVoiceMode('magic')" id="btnModeMagic"
+                                class="px-3 py-1 text-[10px] font-bold transition tab-active text-yellow-400 whitespace-nowrap">✨
+                                Magic Bypass</button>
+                            <button onclick="setVoiceMode('tts')" id="btnModeTTS"
+                                class="px-3 py-1 text-[10px] font-bold transition tab-inactive whitespace-nowrap">🤖
+                                System</button>
+                            <button onclick="setVoiceMode('rec')" id="btnModeRec"
+                                class="px-3 py-1 text-[10px] font-bold transition tab-inactive whitespace-nowrap">🎙️
+                                Me</button>
+                            <button onclick="setVoiceMode('eleven')" id="btnModeEleven"
+                                class="px-3 py-1 text-[10px] font-bold transition tab-inactive text-purple-400 whitespace-nowrap">🧪
+                                11Labs</button>
+                            <button onclick="setVoiceMode('upload')" id="btnModeUpload"
+                                class="px-3 py-1 text-[10px] font-bold transition tab-inactive whitespace-nowrap">📁
+                                Upload</button>
+                        </div>
 
+                        <!-- MAGIC CLOUD TTS CONTROLS -->
+                        <div id="magicControls" class="space-y-2">
+                            <div class="p-2 bg-yellow-500/10 border border-yellow-500/20 rounded-lg text-center">
+                                <p class="text-[9px] text-yellow-200 mb-2"><strong>Mobile Bypass:</strong> Downloads
+                                    real
+                                    audio files from the cloud so it can be recorded perfectly into your mobile video.
+                                </p>
+
+                                <div class="flex gap-2 mb-2">
+                                    <select id="magicLang"
+                                        class="flex-1 bg-black border border-white/10 rounded px-2 text-[10px] h-8 text-gray-300">
+                                        <option value="en">English</option>
+                                        <option value="kn">Kannada</option>
+                                        <option value="hi">Hindi</option>
+                                        <option value="te">Telugu</option>
+                                        <option value="ta">Tamil</option>
+                                        <option value="ml">Malayalam</option>
+                                    </select>
+                                </div>
+
+                                <button onclick="generateMagicAudio()" id="magicGenBtn"
+                                    class="w-full py-2 rounded-lg bg-yellow-600 text-black text-xs font-bold hover:bg-yellow-500 transition flex items-center justify-center gap-2">
+                                    ✨ GENERATE MAGIC AUDIO
+                                </button>
+
+                                <div id="magicPlayerContainer" class="hidden flex items-center gap-2 mt-2">
+                                    <audio id="magicAudioPreview" controls class="flex-1 h-8"></audio>
+                                    <span class="text-[9px] text-green-400 font-bold">READY</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TTS CONTROLS -->
+                        <div id="ttsControls" class="hidden space-y-2">
+                            <p class="text-[9px] text-red-400 text-center font-bold">Note: Cannot be exported to video
+                                on
+                                Mobile.</p>
+                            <div class="flex items-center gap-2">
+                                <select id="voiceSelect"
+                                    class="flex-1 bg-black border border-white/10 rounded text-xs text-white p-2"></select>
+                                <button onclick="loadVoices()"
+                                    class="bg-white/5 border border-white/10 p-2 rounded hover:bg-white/10"
+                                    title="Refresh Voices"><i data-lucide="refresh-cw" class="w-3 h-3"></i></button>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[9px] text-gray-500">SPD</span>
+                                <input type="range" id="speedRange" min="0.8" max="1.5" step="0.1" value="1.0"
+                                    class="flex-1 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                        </div>
+
+                        <!-- RECORDER CONTROLS -->
+                        <div id="recControls" class="hidden space-y-2">
                             <div class="flex gap-2 mb-2">
-                                <select id="magicLang"
-                                    class="flex-1 bg-black border border-white/10 rounded px-2 text-[10px] h-8 text-gray-300">
-                                    <option value="en">English</option>
-                                    <option value="kn">Kannada</option>
-                                    <option value="hi">Hindi</option>
-                                    <option value="te">Telugu</option>
-                                    <option value="ta">Tamil</option>
-                                    <option value="ml">Malayalam</option>
-                                </select>
+                                <button onclick="setRecSubMode('scene')" id="subModeScene"
+                                    class="flex-1 py-1 text-[9px] rounded-md transition sub-tab-active">Scene-by-Scene</button>
+                                <button onclick="setRecSubMode('continuous')" id="subModeCont"
+                                    class="flex-1 py-1 text-[9px] rounded-md transition sub-tab-inactive">Single
+                                    Take</button>
                             </div>
 
-                            <button onclick="generateMagicAudio()" id="magicGenBtn"
-                                class="w-full py-2 rounded-lg bg-yellow-600 text-black text-xs font-bold hover:bg-yellow-500 transition flex items-center justify-center gap-2">
-                                ✨ GENERATE MAGIC AUDIO
-                            </button>
+                            <!-- SCENE UI -->
+                            <div id="sceneUI" class="space-y-2">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-[9px] text-gray-400 font-bold uppercase">Scene List</span>
+                                    <button onclick="generateSceneList()"
+                                        class="text-[9px] text-purple-400 hover:text-purple-300">Refresh ↻</button>
+                                </div>
+                                <div id="sceneListContainer"
+                                    class="max-h-[150px] overflow-y-auto space-y-1 custom-scroll">
+                                    <div class="text-center text-[10px] text-gray-500 py-4">Click "Refresh" to load
+                                        script
+                                        lines.</div>
+                                </div>
+                            </div>
 
-                            <div id="magicPlayerContainer" class="hidden flex items-center gap-2 mt-2">
-                                <audio id="magicAudioPreview" controls class="flex-1 h-8"></audio>
+                            <!-- CONTINUOUS UI -->
+                            <div id="continuousUI" class="hidden space-y-2">
+                                <div id="prompterContainer"
+                                    class="hidden bg-[#1a1a1c] p-3 rounded-lg border border-white/10 mb-2">
+                                    <p class="text-[9px] text-gray-500 uppercase font-bold mb-1">Script to Read:</p>
+                                    <div id="prompterText"
+                                        class="text-sm font-medium text-white leading-relaxed whitespace-pre-wrap h-32 overflow-y-auto custom-scroll">
+                                    </div>
+                                </div>
+
+                                <div class="p-3 bg-black/20 rounded-lg border border-white/5 text-center space-y-2">
+                                    <div class="flex gap-2">
+                                        <button id="contRecBtn" onclick="toggleContinuousRecord()"
+                                            class="flex-1 py-3 rounded-xl bg-red-600/20 text-red-500 border border-red-600/50 hover:bg-red-600 hover:text-white transition font-bold flex items-center justify-center gap-2">
+                                            <i data-lucide="mic" class="w-4 h-4"></i> RECORD
+                                        </button>
+                                        <button id="contPauseBtn" onclick="togglePauseCont()"
+                                            class="hidden w-1/3 py-3 rounded-xl bg-yellow-600/20 text-yellow-500 border border-yellow-600/50 hover:bg-yellow-600 hover:text-white transition font-bold flex items-center justify-center gap-2">
+                                            <i data-lucide="pause" class="w-4 h-4"></i>
+                                        </button>
+                                    </div>
+                                    <div id="contAudioPlayer" class="hidden flex items-center gap-2 mt-2">
+                                        <audio id="contAudioEl" controls class="h-8 flex-1 w-full"></audio>
+                                        <button onclick="deleteContinuousAudio()"
+                                            class="p-2 text-red-400 hover:text-red-300"><i data-lucide="trash-2"
+                                                class="w-4 h-4"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ELEVENLABS CONTROLS -->
+                        <div id="elevenControls" class="hidden space-y-2">
+                            <div class="flex gap-2">
+                                <input type="password" id="elevenApiKey" placeholder="Paste API Key"
+                                    class="flex-1 bg-black border border-white/10 rounded px-2 text-[10px] h-8">
+                                <button onclick="saveElevenKey()"
+                                    class="bg-purple-600/20 text-purple-400 border border-purple-600/50 px-3 rounded text-[10px] font-bold hover:bg-purple-600 hover:text-white transition">Save</button>
+                            </div>
+                            <div class="flex gap-2">
+                                <select id="elevenVoiceSelect"
+                                    class="flex-1 bg-black border border-white/10 rounded px-2 text-[10px] h-8 text-gray-300">
+                                    <option value="">Select Voice...</option>
+                                </select>
+                                <button onclick="fetchElevenVoices()"
+                                    class="bg-white/5 border border-white/10 px-2 rounded hover:bg-white/10"
+                                    title="Refresh Voices"><i data-lucide="refresh-cw" class="w-3 h-3"></i></button>
+                            </div>
+                            <button onclick="generateElevenAudio()" id="elGenBtn"
+                                class="w-full py-2 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-bold hover:shadow-lg hover:shadow-purple-500/20 transition flex items-center justify-center gap-2">
+                                <i data-lucide="sparkles" class="w-3 h-3"></i> GENERATE AUDIO
+                            </button>
+                            <div id="elevenPlayerContainer" class="hidden flex items-center gap-2">
+                                <audio id="elevenAudioPreview" controls class="flex-1 h-8"></audio>
                                 <span class="text-[9px] text-green-400 font-bold">READY</span>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- TTS CONTROLS -->
-                    <div id="ttsControls" class="hidden space-y-2">
-                        <p class="text-[9px] text-red-400 text-center font-bold">Note: Cannot be exported to video on
-                            Mobile.</p>
-                        <div class="flex items-center gap-2">
-                            <select id="voiceSelect"
-                                class="flex-1 bg-black border border-white/10 rounded text-xs text-white p-2"></select>
-                            <button onclick="loadVoices()"
-                                class="bg-white/5 border border-white/10 p-2 rounded hover:bg-white/10"
-                                title="Refresh Voices"><i data-lucide="refresh-cw" class="w-3 h-3"></i></button>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-[9px] text-gray-500">SPD</span>
-                            <input type="range" id="speedRange" min="0.8" max="1.5" step="0.1" value="1.0"
-                                class="flex-1 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer">
-                        </div>
-                    </div>
-
-                    <!-- RECORDER CONTROLS -->
-                    <div id="recControls" class="hidden space-y-2">
-                        <div class="flex gap-2 mb-2">
-                            <button onclick="setRecSubMode('scene')" id="subModeScene"
-                                class="flex-1 py-1 text-[9px] rounded-md transition sub-tab-active">Scene-by-Scene</button>
-                            <button onclick="setRecSubMode('continuous')" id="subModeCont"
-                                class="flex-1 py-1 text-[9px] rounded-md transition sub-tab-inactive">Single
-                                Take</button>
-                        </div>
-
-                        <!-- SCENE UI -->
-                        <div id="sceneUI" class="space-y-2">
-                            <div class="flex justify-between items-center mb-1">
-                                <span class="text-[9px] text-gray-400 font-bold uppercase">Scene List</span>
-                                <button onclick="generateSceneList()"
-                                    class="text-[9px] text-purple-400 hover:text-purple-300">Refresh ↻</button>
-                            </div>
-                            <div id="sceneListContainer" class="max-h-[150px] overflow-y-auto space-y-1 custom-scroll">
-                                <div class="text-center text-[10px] text-gray-500 py-4">Click "Refresh" to load script
-                                    lines.</div>
-                            </div>
-                        </div>
-
-                        <!-- CONTINUOUS UI -->
-                        <div id="continuousUI" class="hidden space-y-2">
-                            <div id="prompterContainer"
-                                class="hidden bg-[#1a1a1c] p-3 rounded-lg border border-white/10 mb-2">
-                                <p class="text-[9px] text-gray-500 uppercase font-bold mb-1">Script to Read:</p>
-                                <div id="prompterText"
-                                    class="text-sm font-medium text-white leading-relaxed whitespace-pre-wrap h-32 overflow-y-auto custom-scroll">
-                                </div>
-                            </div>
-
+                        <!-- UPLOAD CONTROLS -->
+                        <div id="uploadControls" class="hidden space-y-2">
                             <div class="p-3 bg-black/20 rounded-lg border border-white/5 text-center space-y-2">
-                                <div class="flex gap-2">
-                                    <button id="contRecBtn" onclick="toggleContinuousRecord()"
-                                        class="flex-1 py-3 rounded-xl bg-red-600/20 text-red-500 border border-red-600/50 hover:bg-red-600 hover:text-white transition font-bold flex items-center justify-center gap-2">
-                                        <i data-lucide="mic" class="w-4 h-4"></i> RECORD
-                                    </button>
-                                    <button id="contPauseBtn" onclick="togglePauseCont()"
-                                        class="hidden w-1/3 py-3 rounded-xl bg-yellow-600/20 text-yellow-500 border border-yellow-600/50 hover:bg-yellow-600 hover:text-white transition font-bold flex items-center justify-center gap-2">
-                                        <i data-lucide="pause" class="w-4 h-4"></i>
-                                    </button>
-                                </div>
-                                <div id="contAudioPlayer" class="hidden flex items-center gap-2 mt-2">
-                                    <audio id="contAudioEl" controls class="h-8 flex-1 w-full"></audio>
-                                    <button onclick="deleteContinuousAudio()"
+                                <input type="file" id="uploadAudioInput" accept="audio/*"
+                                    onchange="handleAudioUpload(this)">
+                                <button onclick="document.getElementById('uploadAudioInput').click()"
+                                    class="w-full py-3 rounded-xl bg-blue-600/20 text-blue-400 border border-blue-600/50 hover:bg-blue-600 hover:text-white transition font-bold flex items-center justify-center gap-2">
+                                    <i data-lucide="upload" class="w-4 h-4"></i> CHOOSE AUDIO FILE
+                                </button>
+                                <div id="uploadAudioPlayerContainer" class="hidden flex items-center gap-2 mt-2">
+                                    <audio id="uploadAudioPreview" controls class="h-8 flex-1 w-full"></audio>
+                                    <button onclick="deleteUploadedAudio()"
                                         class="p-2 text-red-400 hover:text-red-300"><i data-lucide="trash-2"
                                             class="w-4 h-4"></i></button>
                                 </div>
                             </div>
                         </div>
                     </div>
-
-                    <!-- ELEVENLABS CONTROLS -->
-                    <div id="elevenControls" class="hidden space-y-2">
-                        <div class="flex gap-2">
-                            <input type="password" id="elevenApiKey" placeholder="Paste API Key"
-                                class="flex-1 bg-black border border-white/10 rounded px-2 text-[10px] h-8">
-                            <button onclick="saveElevenKey()"
-                                class="bg-purple-600/20 text-purple-400 border border-purple-600/50 px-3 rounded text-[10px] font-bold hover:bg-purple-600 hover:text-white transition">Save</button>
-                        </div>
-                        <div class="flex gap-2">
-                            <select id="elevenVoiceSelect"
-                                class="flex-1 bg-black border border-white/10 rounded px-2 text-[10px] h-8 text-gray-300">
-                                <option value="">Select Voice...</option>
-                            </select>
-                            <button onclick="fetchElevenVoices()"
-                                class="bg-white/5 border border-white/10 px-2 rounded hover:bg-white/10"
-                                title="Refresh Voices"><i data-lucide="refresh-cw" class="w-3 h-3"></i></button>
-                        </div>
-                        <button onclick="generateElevenAudio()" id="elGenBtn"
-                            class="w-full py-2 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-bold hover:shadow-lg hover:shadow-purple-500/20 transition flex items-center justify-center gap-2">
-                            <i data-lucide="sparkles" class="w-3 h-3"></i> GENERATE AUDIO
-                        </button>
-                        <div id="elevenPlayerContainer" class="hidden flex items-center gap-2">
-                            <audio id="elevenAudioPreview" controls class="flex-1 h-8"></audio>
-                            <span class="text-[9px] text-green-400 font-bold">READY</span>
-                        </div>
-                    </div>
-
-                    <!-- UPLOAD CONTROLS -->
-                    <div id="uploadControls" class="hidden space-y-2">
-                        <div class="p-3 bg-black/20 rounded-lg border border-white/5 text-center space-y-2">
-                            <input type="file" id="uploadAudioInput" accept="audio/*"
-                                onchange="handleAudioUpload(this)">
-                            <button onclick="document.getElementById('uploadAudioInput').click()"
-                                class="w-full py-3 rounded-xl bg-blue-600/20 text-blue-400 border border-blue-600/50 hover:bg-blue-600 hover:text-white transition font-bold flex items-center justify-center gap-2">
-                                <i data-lucide="upload" class="w-4 h-4"></i> CHOOSE AUDIO FILE
-                            </button>
-                            <div id="uploadAudioPlayerContainer" class="hidden flex items-center gap-2 mt-2">
-                                <audio id="uploadAudioPreview" controls class="h-8 flex-1 w-full"></audio>
-                                <button onclick="deleteUploadedAudio()" class="p-2 text-red-400 hover:text-red-300"><i
-                                        data-lucide="trash-2" class="w-4 h-4"></i></button>
-                            </div>
-                        </div>
-                    </div>
                 </div>
-            </div>
+            </details>
 
         </div>
 
         <!-- FOOTER -->
         <div class="p-4 md:p-5 border-t border-white/10 bg-[#0f0f11] space-y-2 shrink-0">
+            <div id="previewProgressBar" class="hidden h-1 bg-white/10 rounded-full overflow-hidden">
+                <div id="previewProgressFill" class="h-full bg-purple-500 transition-all duration-200"
+                    style="width: 0%"></div>
+            </div>
             <button onclick="togglePreview()" id="playBtn"
-                class="w-full bg-white text-black font-black py-3 rounded-xl text-xs flex items-center justify-center gap-2 hover:bg-gray-200 transition">
+                class="w-full bg-white text-black font-black py-3 rounded-xl text-xs flex items-center justify-center gap-2 hover:bg-gray-200 transition"
+                title="Preview with current voice and script">
                 <i data-lucide="play" class="w-3 h-3"></i> PREVIEW
             </button>
             <button id="exportVideoBtn" onclick="exportWithAudio()"
-                class="w-full bg-purple-600 text-white font-bold py-3 rounded-xl text-xs flex items-center justify-center gap-2 hover:bg-purple-500 transition">
+                class="w-full bg-purple-600 text-white font-bold py-3 rounded-xl text-xs flex items-center justify-center gap-2 hover:bg-purple-500 transition"
+                title="Record canvas + audio and download as WebM">
                 <i data-lucide="download" class="w-3 h-3"></i> EXPORT VIDEO
             </button>
         </div>
@@ -704,7 +991,13 @@
             proAudioTime: 0,
             activePins: [],
             activeCenterBrolls: [],
-            imageCache: {}
+            imageCache: {},
+            // MASCOT SYSTEM (Feature 2)
+            mascot: { key: null, position: 'bottom-left', scale: 120 },
+            // STICKER TEXT STYLE (Feature 4)
+            textStyle: 'normal',
+            // PACING
+            pacing: 3
         };
 
         const paperTexture = new Image();
@@ -749,8 +1042,184 @@
             if (isMobile) setVoiceMode('magic'); else setVoiceMode('tts');
 
             setAppMode('classic');
+            syncFontSizeUI();
             loop();
         }
+
+        // ═══════════════════════════════════════════════════════
+        // VIRAL FEATURE 1: LIGHT/PAPER BACKGROUND PRESETS
+        // ═══════════════════════════════════════════════════════
+        function applyBgPreset(color, name) {
+            setBackground('color', color);
+
+            // Feature 6: Auto text-color when light BG selected
+            const isLight = ['white', 'cream', 'lavender'].includes(name);
+            if (isLight) {
+                updateColor('main', '#111111');  // Dark text on light BG
+                // Keep highlight color vivid
+                updateColor('high', name === 'cream' ? '#c0392b' : (name === 'lavender' ? '#6c3483' : '#e74c3c'));
+                // Auto-set texture to paper noise for organic feel
+                const texSelect = document.getElementById('textureSelect');
+                if (texSelect) texSelect.value = 'noise';
+            } else {
+                updateColor('main', '#ffffff'); // Light text on dark BG
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════
+        // VIRAL FEATURE 2: MASCOT / CHARACTER PIN SYSTEM
+        // ═══════════════════════════════════════════════════════
+        function handleMascotUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const dataUrl = e.target.result;
+                STATE.mascot.key = dataUrl;
+                // Show preview
+                const preview = document.getElementById('mascotPreview');
+                if (preview) preview.innerHTML = `<img src="${dataUrl}" class="w-full h-full object-contain rounded">`;
+                // Warm the image cache
+                const img = new Image();
+                img.src = dataUrl;
+                STATE.mascot._img = img;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function clearMascot() {
+            STATE.mascot.key = null;
+            STATE.mascot._img = null;
+            const preview = document.getElementById('mascotPreview');
+            if (preview) preview.innerHTML = `<span class="text-[8px] text-gray-500">None</span>`;
+        }
+
+        function drawMascot(ctx) {
+            if (!STATE.mascot.key || !STATE.mascot._img || !STATE.mascot._img.complete) return;
+            const img = STATE.mascot._img;
+            const size = STATE.mascot.scale;
+            const W = STATE.format.w;
+            const H = STATE.format.h;
+            const pad = 10;
+            let x, y;
+
+            switch (STATE.mascot.position) {
+                case 'bottom-left': x = pad; y = H - size - pad; break;
+                case 'bottom-right': x = W - size - pad; y = H - size - pad; break;
+                case 'top-left': x = pad; y = pad; break;
+                case 'top-right': x = W - size - pad; y = pad; break;
+                case 'center-bottom': x = W / 2 - size / 2; y = H - size - pad; break;
+                default: x = pad; y = H - size - pad;
+            }
+
+            ctx.save();
+            ctx.shadowColor = 'rgba(0,0,0,0.3)';
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetY = 4;
+            ctx.drawImage(img, x, y, size, size);
+            ctx.restore();
+        }
+
+        // ═══════════════════════════════════════════════════════
+        // VIRAL FEATURE 4: TEXT STYLE SYSTEM (Sticker/Bubble/Glow)
+        // ═══════════════════════════════════════════════════════
+        function setTextStyle(style) {
+            STATE.textStyle = style;
+            // Update button states
+            document.querySelectorAll('.ts-btn').forEach(btn => {
+                btn.classList.remove('ts-active', 'ring-1', 'ring-yellow-400', 'ring-blue-400', 'ring-pink-400', 'ring-white');
+            });
+            const btn = document.getElementById('ts_' + style);
+            if (btn) {
+                btn.classList.add('ts-active');
+                const ring = style === 'sticker' ? 'ring-1 ring-yellow-400' :
+                    style === 'bubble' ? 'ring-1 ring-blue-400' :
+                        style === 'glow' ? 'ring-1 ring-pink-400' : 'ring-1 ring-white';
+                btn.classList.add(...ring.split(' '));
+            }
+        }
+
+        // Helper: Apply text style to canvas context
+        function applyTextStyle(ctx, textColor, highlightColor, isHighlight) {
+            const style = STATE.textStyle || 'normal';
+            const fillColor = isHighlight ? highlightColor : textColor;
+
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetY = 0;
+
+            if (style === 'sticker') {
+                // STICKER: 3 strokes — thick black → medium color → fill
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 10;
+                ctx.lineJoin = 'round';
+                return { fillColor, extraStroke: isHighlight ? highlightColor : 'white', extraStrokeWidth: 4 };
+            } else if (style === 'bubble') {
+                ctx.strokeStyle = isHighlight ? 'white' : highlightColor;
+                ctx.lineWidth = 6;
+                ctx.lineJoin = 'round';
+                return { fillColor };
+            } else if (style === 'glow') {
+                ctx.strokeStyle = 'transparent';
+                ctx.lineWidth = 0;
+                ctx.shadowColor = fillColor;
+                ctx.shadowBlur = 25;
+                ctx.shadowOffsetY = 0;
+                return { fillColor };
+            } else {
+                // NORMAL — existing shadow stack
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 4;
+                ctx.lineJoin = 'round';
+                ctx.shadowColor = 'rgba(0,0,0,0.6)';
+                ctx.shadowBlur = 8;
+                ctx.shadowOffsetY = 4;
+                return { fillColor };
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════
+        // VIRAL FEATURE 5: INLINE SHAPE RENDERER [shape=para|#ff0000]
+        // ═══════════════════════════════════════════════════════
+        function drawInlineShape(ctx, type, color, x, y, size) {
+            ctx.save();
+            ctx.fillStyle = color;
+            ctx.shadowColor = 'rgba(0,0,0,0.4)';
+            ctx.shadowBlur = 6;
+
+            // Re-center x/y to be the middle of the 40px reserved box
+            const cx = x + 20;
+            const cy = y;
+
+            if (type === 'para') {
+                const skew = size * 0.25;
+                const w = size * 0.7;
+                const h = size * 0.6;
+                ctx.beginPath();
+                ctx.moveTo(cx - w / 2 + skew, cy - h / 2);
+                ctx.lineTo(cx + w / 2 + skew, cy - h / 2);
+                ctx.lineTo(cx + w / 2 - skew, cy + h / 2);
+                ctx.lineTo(cx - w / 2 - skew, cy + h / 2);
+                ctx.closePath();
+                ctx.fill();
+            } else if (type === 'circle') {
+                ctx.beginPath();
+                ctx.arc(cx, cy, size * 0.35, 0, Math.PI * 2);
+                ctx.fill();
+            } else if (type === 'star') {
+                const r1 = size * 0.4, r2 = size * 0.2;
+                ctx.beginPath();
+                for (let i = 0; i < 10; i++) {
+                    const r = i % 2 === 0 ? r1 : r2;
+                    const angle = (i * Math.PI) / 5 - Math.PI / 2;
+                    ctx.lineTo(cx + r * Math.cos(angle), cy + r * Math.sin(angle));
+                }
+                ctx.closePath();
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
 
         // --- VISUAL EDITOR HELPERS (SMART INSERT) ---
         function insertTag(tag) {
@@ -837,45 +1306,33 @@
             STATE.storyScenes = [];
 
             lines.forEach(line => {
-                if (!line.trim()) return; // Skip empty lines
+                if (!line.trim()) return;
 
                 let bg = "";
                 let broll = "";
                 let align = "center";
                 let text = line;
 
-                // Extract BG
                 const bgMatch = text.match(/\[bg=(.*?)\]/i);
                 if (bgMatch) { bg = bgMatch[1]; text = text.replace(bgMatch[0], ''); }
-
-                // Extract B-Roll (Center or Pin)
                 const centerMatch = text.match(/\[=(.*?)\]/i);
                 if (centerMatch) { broll = centerMatch[1]; text = text.replace(centerMatch[0], ''); }
-                // Note: Currently Storyboard only has one B-Roll slot. Let's map [=...] to it. 
-                // If [+...] is used, maybe map to same slot or ignore for simplicity to keep it user friendly? 
-                // The user asked for "simple". Let's stick to Center B-Roll [=...] as the primary B-Roll in storyboard.
-
-                // Extract Align
                 if (text.includes('[top]')) { align = 'top'; text = text.replace('[top]', ''); }
                 if (text.includes('[bottom]')) { align = 'bottom'; text = text.replace('[bottom]', ''); }
 
-                // Cleanup text
                 text = text.trim();
 
-                // Add scene with ALL properties including timeline controls
-                STATE.storyScenes.push({
-                    bg,
-                    bgColor: '#000000',
-                    broll,
-                    align,
-                    text,
-                    duration: null,
-                    durationMode: 'auto',
-                    brollStart: 0,
-                    brollDuration: 2,
-                    brollFade: true,
-                    brollPreset: 'full'
-                });
+                // SMART SPLIT: If a line is too long, break it into chunks of 4-6 words max
+                // This prevents the "messed up" layout for long lines.
+                const words = text.split(/\s+/);
+                if (words.length > 8 && !text.includes('[') && !text.includes('*')) {
+                    for (let i = 0; i < words.length; i += 6) {
+                        const chunk = words.slice(i, i + 6).join(' ');
+                        STATE.storyScenes.push({ bg, bgColor: '#000000', broll, align, text: chunk, duration: null, durationMode: 'auto' });
+                    }
+                } else {
+                    STATE.storyScenes.push({ bg, bgColor: '#000000', broll, align, text, duration: null, durationMode: 'auto' });
+                }
             });
 
             renderStoryboard();
@@ -888,6 +1345,7 @@
                 broll: '',
                 align: 'center',
                 text: '',
+                subLabel: '',  // FEATURE 3: Two-tier text (small label above hero word)
                 // Timeline control properties
                 duration: null,
                 durationMode: 'auto',
@@ -900,6 +1358,20 @@
                 textSize: 'normal'  // 'small', 'normal', 'large', 'huge'
             });
             renderStoryboard();
+        }
+
+        function addStoryScene() { addNewStoryScene(); }
+
+        // FEATURE 3 + 5: Insert shape tag into scene text
+        function insertShapeTag(sceneIdx, shapeType, color) {
+            const textarea = document.getElementById('sceneText_' + sceneIdx);
+            if (!textarea) return;
+            const tag = `[shape=${shapeType}|${color}]`;
+            const start = textarea.selectionStart;
+            const text = textarea.value;
+            const newText = text.substring(0, start) + tag + ' ' + text.substring(start);
+            textarea.value = newText;
+            updateStoryScene(sceneIdx, 'text', newText);
         }
 
         function deleteStoryScene(index) {
@@ -953,7 +1425,8 @@
 
             STATE.storyScenes[index][field] = value;
             compileStoryToScript();
-            if (field !== 'text') renderStoryboard(); // Avoid re-render on every text keystroke
+            // Don't re-render entire storyboard on text/sub-label keystrokes (focus loss)
+            if (field !== 'text' && field !== 'subLabel') renderStoryboard();
         }
 
         function renderStoryboard() {
@@ -974,193 +1447,211 @@
 
             STATE.storyScenes.forEach((scene, i) => {
                 const div = document.createElement('div');
-                div.className = 'scene-card';
+                // Sleek Timeline Track container
+                div.className = 'bg-[#1a1a1c] border border-white/5 rounded-lg mb-2 overflow-hidden flex flex-col shadow-sm transition-all hover:border-white/10 relative group';
 
-                // Build asset preview section
+                // --- 1. MEDIA PREVIEWS (Left track style) ---
                 let assetPreview = '';
                 const sceneAssets = [];
 
-                // Add BG asset if exists
                 if (scene.bg && STATE.assets[scene.bg]) {
                     const isVid = STATE.assetTypes[scene.bg] === 'video';
-                    const icon = isVid ? '🎥' : '📷';
-                    const mediaSrc = STATE.assets[scene.bg];
-                    sceneAssets.push({ type: 'bg', key: scene.bg, isVid, icon, mediaSrc });
+                    sceneAssets.push({ type: 'bg', key: scene.bg, isVid, mediaSrc: STATE.assets[scene.bg], icon: 'image' });
                 }
-
-                // Add B-Roll asset if exists
                 if (scene.broll && STATE.assets[scene.broll]) {
                     const isVid = STATE.assetTypes[scene.broll] === 'video';
-                    const icon = isVid ? '🎥' : '📷';
-                    const mediaSrc = STATE.assets[scene.broll];
-                    sceneAssets.push({ type: 'broll', key: scene.broll, isVid, icon, mediaSrc });
+                    sceneAssets.push({ type: 'broll', key: scene.broll, isVid, mediaSrc: STATE.assets[scene.broll], icon: 'film' });
                 }
 
                 if (sceneAssets.length > 0) {
-                    assetPreview = '<div class="flex gap-2 mb-2 flex-wrap">';
+                    assetPreview = '<div class="flex gap-1">';
                     sceneAssets.forEach(asset => {
                         const mediaHtml = asset.isVid
-                            ? `<video src="${asset.mediaSrc}" class="w-full h-full object-cover rounded"></video>`
-                            : `<img src="${asset.mediaSrc}" class="w-full h-full object-cover rounded">`;
+                            ? `<video src="${asset.mediaSrc}" class="w-full h-full object-cover rounded-sm"></video>`
+                            : `<img src="${asset.mediaSrc}" class="w-full h-full object-cover rounded-sm">`;
+                        const colorClass = asset.type === 'bg' ? 'border-indigo-500/50' : 'border-green-500/50';
                         assetPreview += `
-                            <div class="relative bg-black border border-purple-500/30 rounded overflow-hidden" style="width: 60px; height: 60px;">
+                            <div class="relative bg-black border ${colorClass} rounded-sm overflow-hidden" style="width: 36px; height: 36px; cursor: pointer;" title="Click to remove ${asset.type}" onclick="deleteSceneAsset(${i}, '${asset.key}', '${asset.type}')">
                                 ${mediaHtml}
-                                <div class="absolute top-0 left-0 bg-purple-600 text-white text-[7px] px-1 rounded-br">${asset.type === 'bg' ? 'BG' : 'B-Roll'}</div>
-                                <div class="absolute bottom-0 right-0 flex gap-0.5 p-0.5">
-                                    <button onclick="replaceSceneAsset(${i}, '${asset.key}', '${asset.type}')" class="bg-blue-600/90 hover:bg-blue-500 text-white rounded p-0.5" title="Replace">
-                                        <i data-lucide="refresh-cw" class="w-2.5 h-2.5"></i>
-                                    </button>
-                                    <button onclick="deleteSceneAsset(${i}, '${asset.key}', '${asset.type}')" class="bg-red-600/90 hover:bg-red-500 text-white rounded p-0.5" title="Delete">
-                                        <i data-lucide="x" class="w-2.5 h-2.5"></i>
-                                    </button>
-                                </div>
+                                <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition"><i data-lucide="trash" class="w-3 h-3 text-red-500"></i></div>
+                                <div class="absolute bottom-0 right-0 bg-black/80 text-[6px] px-0.5 font-bold uppercase ${asset.type === 'bg' ? 'text-indigo-400' : 'text-green-400'}">${asset.type}</div>
                             </div>
                         `;
                     });
                     assetPreview += '</div>';
+                } else {
+                    assetPreview = `
+                        <div class="w-[36px] h-[36px] bg-black/30 border border-white/5 rounded-sm flex flex-col items-center justify-center text-[7px] text-gray-600 mt-0.5">
+                            <i data-lucide="image" class="w-3 h-3 mb-0.5 opacity-50"></i>
+                            Empty
+                        </div>
+                     `;
                 }
 
                 div.innerHTML = `
-                    <div class="scene-header">
-                        <span class="scene-label">Scene ${i + 1}</span>
-                        <div class="split-btn" onclick="splitStoryScene(${i})" title="Split text into multiple scenes">✂️ Split</div>
-                    </div>
-                    <!-- Background -->
-                    <div class="mb-2">
-                        <div class="flex items-center gap-1 mb-1">
-                            <label class="text-[8px] text-gray-500 uppercase">Background</label>
-                            <button onclick="uploadSceneAsset(${i}, 'bg')" class="ml-auto text-[8px] px-2 py-0.5 bg-indigo-900/40 text-indigo-300 rounded border border-indigo-700/40 hover:bg-indigo-600 hover:text-white transition flex items-center gap-1" title="Upload Background">
-                                <i data-lucide="upload" class="w-2.5 h-2.5"></i> Upload
-                            </button>
+                    <!-- Compact Top Bar -->
+                    <div class="flex items-center justify-between px-2 py-1.5 bg-black/40 border-b border-white/5">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[9px] text-gray-400 font-bold bg-white/5 px-1.5 py-0.5 rounded">#${i + 1}</span>
+                            <div class="flex gap-1 ml-1">
+                                <button onclick="uploadSceneAsset(${i}, 'bg')" class="text-[8px] bg-indigo-900/30 text-indigo-300 px-1.5 py-0.5 rounded flex items-center gap-1 hover:bg-indigo-600 hover:text-white transition border border-indigo-700/30" title="Upload Background">
+                                    <i data-lucide="image" class="w-2.5 h-2.5"></i> + BG
+                                </button>
+                                <button onclick="uploadSceneAsset(${i}, 'broll')" class="text-[8px] bg-green-900/30 text-green-300 px-1.5 py-0.5 rounded flex items-center gap-1 hover:bg-green-600 hover:text-white transition border border-green-700/30" title="Upload B-Roll">
+                                    <i data-lucide="film" class="w-2.5 h-2.5"></i> + B-Roll
+                                </button>
+                                <button onclick="toggleMediaPicker(${i})" id="pickerBtn_${i}" class="text-[8px] bg-purple-900/30 text-purple-300 px-1.5 py-0.5 rounded flex items-center gap-1 hover:bg-purple-600 hover:text-white transition border border-purple-700/30 font-bold" title="Insert Media into Text Flow">
+                                    <i data-lucide="sparkles" class="w-2.5 h-2.5"></i> + INLINE
+                                </button>
+                            </div>
+                            <div class="h-4 w-px bg-white/10 mx-1"></div>
+                            <div class="flex gap-0.5">
+                                <button onclick="moveStoryScene(${i}, -1)" class="text-gray-500 hover:text-white p-0.5 ${i === 0 ? 'opacity-20 cursor-not-allowed' : ''}"><i data-lucide="chevron-up" class="w-3 h-3"></i></button>
+                                <button onclick="moveStoryScene(${i}, 1)" class="text-gray-500 hover:text-white p-0.5 ${i === STATE.storyScenes.length - 1 ? 'opacity-20 cursor-not-allowed' : ''}"><i data-lucide="chevron-down" class="w-3 h-3"></i></button>
+                            </div>
                         </div>
-                        <div class="flex gap-1">
-                            <select class="scene-select flex-1" onchange="updateStoryScene(${i}, 'bg', this.value)">
-                                ${bgOptions}
-                            </select>
-                            <input type="color" 
-                                class="w-10 h-8 rounded border border-white/20 cursor-pointer bg-transparent" 
-                                value="${scene.bgColor || '#000000'}"
-                                onchange="updateSceneBgColor(${i}, this.value)"
-                                title="Pick solid color">
+                        <div class="flex gap-1.5 items-center">
+                            <button onclick="previewStoryScene(${i})" class="text-gray-500 hover:text-cyan-400" title="Preview Scene"><i data-lucide="eye" class="w-3.5 h-3.5"></i></button>
+                            <div class="w-px h-3 bg-white/10 mx-0.5"></div>
+                            <button onclick="document.getElementById('adv_scene_${i}').classList.toggle('hidden')" class="text-[8px] text-gray-500 hover:text-yellow-400 font-bold uppercase flex items-center gap-0.5" title="Advanced Timeline & Layout Controls">
+                                <i data-lucide="settings-2" class="w-2.5 h-2.5"></i> Adv
+                            </button>
+                            <div class="w-px h-3 bg-white/10 mx-0.5"></div>
+                            <button onclick="splitStoryScene(${i})" class="text-gray-500 hover:text-white" title="Split text">✂️</button>
+                            <button onclick="deleteStoryScene(${i})" class="text-red-900 hover:text-red-500 px-1"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
                         </div>
                     </div>
                     
-                    <div class="mb-2">
-                        <div class="flex items-center gap-1 mb-1">
-                            <label class="text-[8px] text-gray-500 uppercase">B-Roll</label>
-                            <button onclick="uploadSceneAsset(${i}, 'broll')" class="ml-auto text-[8px] px-2 py-0.5 bg-green-900/40 text-green-300 rounded border border-green-700/40 hover:bg-green-600 hover:text-white transition flex items-center gap-1" title="Upload B-Roll">
-                                <i data-lucide="upload" class="w-2.5 h-2.5"></i> Upload
-                            </button>
-                        </div>
-                        <select class="scene-select" onchange="updateStoryScene(${i}, 'broll', this.value)">
-                            ${brollOptions}
-                        </select>
-                    </div>
-                    
-                    <!-- Timeline Controls -->
-                    <div class="mt-2 p-2 bg-black/30 rounded border border-cyan-900/30">
-                        <div class="text-[8px] text-cyan-400 uppercase mb-1.5 flex items-center gap-1">
-                            <i data-lucide="clock" class="w-2.5 h-2.5"></i>
-                            Timeline
+                    <!-- Main Track Area -->
+                    <div class="flex p-2 gap-2 h-full relative">
+                        <!-- Media Thumbnails Column -->
+                        <div class="flex flex-col shrink-0 justify-start w-[80px]">
+                            ${assetPreview}
                         </div>
                         
-                        <!-- Scene Duration -->
-                        <div class="mb-2">
-                            <div class="flex items-center gap-2 mb-1">
-                                <label class="text-[8px] text-gray-400 flex-shrink-0">Duration:</label>
-                                <select class="scene-select flex-1 text-[9px]" onchange="updateSceneDurationMode(${i}, this.value)">
-                                    <option value="auto" ${!scene.durationMode || scene.durationMode === 'auto' ? 'selected' : ''}>Auto (from voice)</option>
-                                    <option value="manual" ${scene.durationMode === 'manual' ? 'selected' : ''}>Manual</option>
-                                </select>
-                                <input type="number" step="0.1" min="0.1" max="60" 
-                                    class="scene-select w-14 text-[9px]" 
-                                    placeholder="3.0" 
-                                    value="${scene.duration || ''}"
-                                    ${scene.durationMode !== 'manual' ? 'disabled' : ''}
-                                    onchange="updateSceneDuration(${i}, this.value)" />
-                                <span class="text-[8px] text-gray-500">s</span>
+                        <!-- Text Track (Two-Tier: Sub-Label + Hero Word) -->
+                        <div class="flex-1 flex flex-col gap-1">
+                            <input id="sceneSubLabel_${i}" type="text" placeholder="Sub-label (small, italic above)" 
+                                class="bg-black/50 border border-white/5 hover:border-indigo-400/30 focus:border-indigo-500 rounded px-1.5 py-0.5 text-[9px] text-indigo-200 outline-none italic placeholder-gray-600 transition-colors" 
+                                value="${scene.subLabel || ''}"
+                                oninput="updateStoryScene(${i}, 'subLabel', this.value)" title="Sub-label: appears small and italic above the main text">
+                            <textarea id="sceneText_${i}" class="flex-1 bg-black w-full border border-transparent hover:border-white/10 focus:border-purple-500 rounded p-1.5 text-[11px] text-white resize-none outline-none transition-colors" rows="2" placeholder="Hero text (BIG, bold, center)..." oninput="updateStoryScene(${i}, 'text', this.value)">${scene.text}</textarea>
+                            <div class="flex gap-1">
+                                <button onclick="insertShapeTag(${i}, 'para', '#ff0000')" class="text-[7px] bg-red-900/20 border border-red-500/30 text-red-300 px-1 py-0.5 rounded hover:bg-red-500 hover:text-white transition" title="Insert red parallelogram shape before text">◆ Shape</button>
+                                <button onclick="insertShapeTag(${i}, 'star', '#ffea00')" class="text-[7px] bg-yellow-900/20 border border-yellow-500/30 text-yellow-300 px-1 py-0.5 rounded hover:bg-yellow-500 hover:text-white transition" title="Insert star shape">★ Star</button>
+                                <button onclick="insertShapeTag(${i}, 'circle', '#3498db')" class="text-[7px] bg-blue-900/20 border border-blue-500/30 text-blue-300 px-1 py-0.5 rounded hover:bg-blue-500 hover:text-white transition" title="Insert circle shape">● Circle</button>
                             </div>
                         </div>
+
+                        <!-- Inline Media Picker Overlay -->
+                        <div id="mediaPicker_${i}" class="hidden absolute inset-0 bg-black/95 z-20 p-2 overflow-y-auto rounded-lg border border-purple-500/30 animate-in fade-in zoom-in duration-200">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-[10px] font-bold text-purple-400 uppercase tracking-wider">Insert Media Into Text</span>
+                                <button onclick="toggleMediaPicker(${i})" class="text-gray-500 hover:text-white"><i data-lucide="x" class="w-3 h-3"></i></button>
+                            </div>
+                            <div class="grid grid-cols-4 gap-2">
+                                ${Object.keys(STATE.assets).map(k => {
+                    const m = STATE.assetTypes[k] === 'video' ? `<video src="${STATE.assets[k]}" class="w-full h-10 object-cover rounded bg-black"></video>` : `<img src="${STATE.assets[k]}" class="w-full h-10 object-cover rounded bg-black">`;
+                    return `
+                                        <div class="bg-white/5 p-1 rounded hover:bg-white/10 cursor-pointer border border-transparent hover:border-purple-500/50 transition-all group" onclick="insertInlineMedia(${i}, '${k}')">
+                                            ${m}
+                                            <div class="text-[6px] truncate text-gray-400 mt-1">${k}</div>
+                                        </div>
+                                    `;
+                }).join('') || '<div class="col-span-4 text-center py-4 text-[9px] text-gray-500">No assets uploaded yet!</div>'}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hidden Advanced Controls (Collapsible) -->
+                    <div id="adv_scene_${i}" class="hidden flex flex-col gap-2 p-2 bg-[#121213] border-t border-white/5">
                         
-                        <!-- B-Roll Timing (Simplified) -->
-                        ${scene.broll ? `
-                        <div class="mb-1">
-                            <div class="flex items-center gap-2">
-                                <label class="text-[8px] text-gray-400 flex-shrink-0">B-Roll Show:</label>
-                                <select class="scene-select flex-1 text-[9px]" onchange="updateBrollPreset(${i}, this.value)">
-                                    <option value="full" ${!scene.brollPreset || scene.brollPreset === 'full' ? 'selected' : ''}>📽️ Full Scene</option>
-                                    <option value="first-half" ${scene.brollPreset === 'first-half' ? 'selected' : ''}>⏮️ First Half</option>
-                                    <option value="second-half" ${scene.brollPreset === 'second-half' ? 'selected' : ''}>⏭️ Second Half</option>
-                                    <option value="custom" ${scene.brollPreset === 'custom' ? 'selected' : ''}>⚙️ Custom</option>
-                                </select>
-                            </div>
-                            ${scene.brollPreset === 'custom' ? `
-                            <div class="flex items-center gap-1 mt-1 ml-4">
-                                <span class="text-[7px] text-gray-500">Start</span>
-                                <input type="number" step="0.1" min="0" 
-                                    class="scene-select w-12 text-[8px]" 
-                                    value="${scene.brollStart || 0}"
-                                    onchange="updateBrollTiming(${i}, 'start', this.value)" />
-                                <span class="text-[7px] text-gray-500">Len</span>
-                                <input type="number" step="0.1" min="0.1" 
-                                    class="scene-select w-12 text-[8px]" 
-                                    value="${scene.brollDuration || 2}"
-                                    onchange="updateBrollTiming(${i}, 'duration', this.value)" />
-                                <span class="text-[7px] text-gray-500">s</span>
-                            </div>
-                            ` : ''}
+                        <!-- Library Dropdowns (if they didn't upload direct but want to pick from existing) -->
+                        <div class="flex gap-2">
+                             <div class="flex-1">
+                                 <label class="text-[7px] text-indigo-400 uppercase mb-0.5 block font-bold">Set From Library (BG)</label>
+                                 <select class="w-full bg-black text-[9px] border border-white/10 rounded p-1 text-gray-300" onchange="updateStoryScene(${i}, 'bg', this.value)">
+                                     ${bgOptions}
+                                 </select>
+                             </div>
+                             <div class="flex-1">
+                                 <label class="text-[7px] text-green-400 uppercase mb-0.5 block font-bold">Set From Library (B-Roll)</label>
+                                 <select class="w-full bg-black text-[9px] border border-white/10 rounded p-1 text-gray-300" onchange="updateStoryScene(${i}, 'broll', this.value)">
+                                     ${brollOptions}
+                                 </select>
+                             </div>
                         </div>
-                        ` : ''}
-                    </div>
-                    
-                    ${assetPreview}
-                    
-                    <textarea class="w-full bg-black border border-white/10 rounded p-2 text-sm text-white mb-2" rows="2" placeholder="Dialogue..." oninput="updateStoryScene(${i}, 'text', this.value)">${scene.text}</textarea>
-                    
-                    <!-- Advanced Layout Controls -->
-                    <div class="mb-2 p-2 bg-black/20 rounded border border-purple-900/30">
-                        <div class="text-[8px] text-purple-400 uppercase mb-1.5 flex items-center gap-1">
-                            <i data-lucide="layout" class="w-2.5 h-2.5"></i>
-                            Layout & Size
-                        </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div>
-                                <label class="text-[7px] text-gray-400 block mb-0.5">Layout Mode</label>
-                                <select class="scene-select text-[8px]" onchange="updateSceneLayout(${i}, this.value)">
-                                    <option value="text-over-media" ${!scene.layoutMode || scene.layoutMode === 'text-over-media' ? 'selected' : ''}>📝 Text Over Media</option>
-                                    <option value="media-only" ${scene.layoutMode === 'media-only' ? 'selected' : ''}>🎬 Media Only</option>
-                                    <option value="text-only" ${scene.layoutMode === 'text-only' ? 'selected' : ''}>💬 Text Only</option>
-                                    <option value="text-below-media" ${scene.layoutMode === 'text-below-media' ? 'selected' : ''}>📐 Text Below Media</option>
-                                </select>
+
+                        <!-- Timeline & Layout -->
+                        <div class="grid grid-cols-2 gap-2 mt-1">
+                            <div class="bg-black/40 p-1.5 rounded border border-white/5">
+                                <label class="text-[7px] text-cyan-400 uppercase mb-0.5 block font-bold"><i data-lucide="clock" class="w-2 h-2 inline"></i> Timeline</label>
+                                <div class="flex items-center gap-1">
+                                    <select class="bg-black text-[8px] border border-white/10 rounded px-1 w-12 text-gray-300" onchange="updateSceneDurationMode(${i}, this.value)">
+                                        <option value="auto" ${!scene.durationMode || scene.durationMode === 'auto' ? 'selected' : ''}>Auto</option>
+                                        <option value="manual" ${scene.durationMode === 'manual' ? 'selected' : ''}>Fixed</option>
+                                    </select>
+                                    <input type="number" step="0.1" min="0.1" max="60" class="bg-black text-[8px] border border-white/10 rounded px-1 flex-1 text-gray-300" placeholder="Sec" value="${scene.duration || ''}" ${scene.durationMode !== 'manual' ? 'disabled' : ''} onchange="updateSceneDuration(${i}, this.value)">
+                                </div>
                             </div>
-                            <div>
-                                <label class="text-[7px] text-gray-400 block mb-0.5">Text Size</label>
-                                <select class="scene-select text-[8px]" onchange="updateTextSize(${i}, this.value)">
-                                    <option value="small" ${scene.textSize === 'small' ? 'selected' : ''}>🔤 Small (50%)</option>
-                                    <option value="normal" ${!scene.textSize || scene.textSize === 'normal' ? 'selected' : ''}>🔡 Normal</option>
-                                    <option value="large" ${scene.textSize === 'large' ? 'selected' : ''}>🔠 Large (150%)</option>
-                                    <option value="huge" ${scene.textSize === 'huge' ? 'selected' : ''}>📢 Huge (200%)</option>
-                                </select>
+
+                            <div class="bg-black/40 p-1.5 rounded border border-white/5">
+                                <label class="text-[7px] text-purple-400 uppercase mb-0.5 block font-bold"><i data-lucide="layout" class="w-2 h-2 inline"></i> Style & Size</label>
+                                <div class="flex items-center gap-1">
+                                    <select class="bg-black text-[8px] border border-white/10 rounded px-1 w-14 text-gray-300" onchange="updateSceneLayout(${i}, this.value)">
+                                        <option value="text-over-media" ${!scene.layoutMode || scene.layoutMode === 'text-over-media' ? 'selected' : ''}>Overlay</option>
+                                        <option value="media-only" ${scene.layoutMode === 'media-only' ? 'selected' : ''}>Media Only</option>
+                                    </select>
+                                    <select class="bg-black text-[8px] border border-white/10 rounded px-1 flex-1 text-gray-300" onchange="updateTextSize(${i}, this.value)">
+                                        <option value="small" ${scene.textSize === 'small' ? 'selected' : ''}>Small</option>
+                                        <option value="normal" ${!scene.textSize || scene.textSize === 'normal' ? 'selected' : ''}>Norm</option>
+                                        <option value="huge" ${scene.textSize === 'huge' ? 'selected' : ''}>Huge</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="flex gap-1 items-center">
-                         <div class="flex bg-black rounded p-0.5 border border-white/10">
-                            <button onclick="updateStoryScene(${i}, 'align', 'top'); renderStoryboard();" class="scene-btn ${scene.align === 'top' ? 'active' : ''}">Top</button>
-                            <button onclick="updateStoryScene(${i}, 'align', 'center'); renderStoryboard();" class="scene-btn ${scene.align === 'center' ? 'active' : ''}">Mid</button>
-                            <button onclick="updateStoryScene(${i}, 'align', 'bottom'); renderStoryboard();" class="scene-btn ${scene.align === 'bottom' ? 'active' : ''}">Bot</button>
-                         </div>
-                         <button onclick="deleteStoryScene(${i})" class="ml-auto text-red-400 hover:text-red-300 text-xs p-1"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
+
+                        <!-- Alignment -->
+                        <div class="flex gap-1 justify-center mt-1">
+                             <div class="flex bg-black rounded p-0.5 border border-white/10">
+                                <button onclick="updateStoryScene(${i}, 'align', 'top'); renderStoryboard();" class="text-[8px] px-2 py-0.5 rounded ${scene.align === 'top' ? 'bg-white/20 text-white' : 'text-gray-500'}">Top</button>
+                                <button onclick="updateStoryScene(${i}, 'align', 'center'); renderStoryboard();" class="text-[8px] px-2 py-0.5 rounded ${scene.align === 'center' ? 'bg-white/20 text-white' : 'text-gray-500'}">Mid</button>
+                                <button onclick="updateStoryScene(${i}, 'align', 'bottom'); renderStoryboard();" class="text-[8px] px-2 py-0.5 rounded ${scene.align === 'bottom' ? 'bg-white/20 text-white' : 'text-gray-500'}">Bot</button>
+                             </div>
+                        </div>
                     </div>
                 `;
-                // Hydrate select values manually after creation
+
+                // Hydrate library select values manually
                 const selects = div.querySelectorAll('select');
-                selects[0].value = scene.bg;
-                selects[1].value = scene.broll;
+                if (selects.length >= 2) {
+                    selects[0].value = scene.bg || "";
+                    selects[1].value = scene.broll || "";
+                }
 
                 container.appendChild(div);
             });
+
+            // ADD HELPER FUNCTIONS FOR INLINE MEDIA
+            window.toggleMediaPicker = (i) => {
+                const picker = document.getElementById(`mediaPicker_${i}`);
+                if (picker) picker.classList.toggle('hidden');
+            };
+
+            window.insertInlineMedia = (i, key) => {
+                const textarea = document.getElementById(`sceneText_${i}`);
+                const tag = `[=${key}]`;
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                const text = textarea.value;
+                const newText = text.substring(0, start) + (start > 0 && text[start - 1] !== ' ' && text[start - 1] !== '\n' ? ' ' : '') + tag + " " + text.substring(end);
+
+                textarea.value = newText;
+                updateStoryScene(i, 'text', newText);
+                toggleMediaPicker(i);
+                renderStoryboard();
+            };
+
             lucide.createIcons();
         }
 
@@ -1195,13 +1686,56 @@
                 let brollTag = "";
                 if (scene.broll) brollTag = ` [=${scene.broll}]`;
 
-                let content = scene.text.trim();
+                let content = (scene.text || "").trim();
+
+                // FEATURE 3: Two-tier text (Small sub-label above Hero word)
+                if (scene.subLabel && scene.subLabel.trim()) {
+                    content = `{small}${scene.subLabel.trim()}{/small} ` + content;
+                }
+
                 // Add gap automatically if text empty but B-Roll present
                 if (!content && scene.broll) content = "_";
 
                 fullScript += `${tags}${content}${brollTag}\n`;
             });
             document.getElementById('scriptInput').value = fullScript;
+        }
+
+        async function autoLayoutAll() {
+            if (STATE.storyScenes.length === 0) return;
+            if (!confirm('This will automatically optimize text size and alignment for all scenes based on word count. Proceed?')) return;
+
+            STATE.storyScenes.forEach(scene => {
+                const words = scene.text.trim().split(/\s+/).length;
+                if (words <= 3) scene.textSize = 'huge';
+                else if (words > 12) scene.textSize = 'small';
+                else scene.textSize = 'normal';
+
+                scene.align = 'center';
+                scene.layoutMode = 'text-over-media';
+            });
+            renderStoryboard();
+            compileStoryToScript();
+        }
+
+        function moveStoryScene(index, direction) {
+            const newIndex = index + direction;
+            if (newIndex < 0 || newIndex >= STATE.storyScenes.length) return;
+
+            const item = STATE.storyScenes.splice(index, 1)[0];
+            STATE.storyScenes.splice(newIndex, 0, item);
+
+            renderStoryboard();
+            compileStoryToScript();
+        }
+
+        function previewStoryScene(i) {
+            // Stop current playback
+            if (STATE.isPlaying) stopPreview();
+
+            // Just jump to full preview but start at this scene index
+            // We need to ensure startPreview supports an optional starting scene
+            startPreview(i);
         }
 
         // --- PER-SCENE ASSET MANAGEMENT HELPERS ---
@@ -1308,6 +1842,66 @@
             compileStoryToScript();
             renderStoryboard();
             renderAssets();
+        }
+
+        // --- NEW: ADVANCED STORYBOARD MAGIC LOGIC ---
+        function toggleStoryboardMagic() {
+            const panel = document.getElementById('storyboardMagicPanel');
+            panel.classList.toggle('hidden');
+            if (!panel.classList.contains('hidden')) {
+                // Populate bulk select
+                const select = document.getElementById('bulkBgSelect');
+                select.innerHTML = '<option value="">Select Asset to Bulk Apply...</option>';
+                Object.keys(STATE.assets).forEach(k => {
+                    select.innerHTML += `<option value="${k}">${k}</option>`;
+                });
+            }
+        }
+
+        function bulkApplyBackground() {
+            const assetKey = document.getElementById('bulkBgSelect').value;
+            if (!assetKey) return alert('Select an asset first!');
+            if (!confirm(`Apply '${assetKey}' as the background to ALL ${STATE.storyScenes.length} scenes?`)) return;
+
+            STATE.storyScenes.forEach(scene => {
+                scene.bg = assetKey;
+            });
+            compileStoryToScript();
+            renderStoryboard();
+        }
+
+        function autoSprinkleBroll() {
+            const assetKeys = Object.keys(STATE.assets);
+            if (assetKeys.length === 0) return alert('Upload some video or image assets first into the Assets tab!');
+
+            if (!confirm('This will instantly assign your uploaded media randomly to your scenes as Backgrounds and B-Rolls. Proceed?')) return;
+
+            // Randomly sprinkle Media roughly every 2 scenes
+            STATE.storyScenes.forEach((scene, i) => {
+                // Background fallback
+                if (Math.random() > 0.4) {
+                    scene.bg = assetKeys[Math.floor(Math.random() * assetKeys.length)];
+                }
+
+                // B-Roll Sprinkle
+                if (Math.random() > 0.5) { // 50% chance
+                    const randomAsset = assetKeys[Math.floor(Math.random() * assetKeys.length)];
+                    scene.broll = randomAsset;
+                    if (!scene.brollDuration) scene.brollDuration = 2; // Default 2s duration
+                }
+            });
+            compileStoryToScript();
+            renderStoryboard();
+        }
+
+        function clearAllMedia() {
+            if (!confirm('Are you sure you want to remove ALL BACKGROUNDS and B-ROLLS from all scenes? Text will remain.')) return;
+            STATE.storyScenes.forEach(scene => {
+                scene.bg = '';
+                scene.broll = '';
+            });
+            compileStoryToScript();
+            renderStoryboard();
         }
 
         function replaceSceneAsset(sceneIndex, oldAssetKey, assetType) {
@@ -1876,6 +2470,7 @@
                     let text = token; let imgKey = null; let annotation = null; let isSilent = false;
                     let isPinned = false; let customAnim = null; let isHighlight = false; let isHuge = false; let isGap = false;
                     let isCenterBroll = false; let isWipe = false; let bgChange = null;
+                    let isSmall = false; let isShape = false; let shapeType = null; let shapeColor = null;
 
                     const bgMatch = text.match(/\[bg=(.*?)\]/i);
                     if (bgMatch) {
@@ -1891,9 +2486,31 @@
 
                     const animMatch = text.match(/\{([a-zA-Z]+)\}/);
                     if (animMatch) {
-                        if (animMatch[1].toLowerCase() === 'wipe') isWipe = true;
-                        else customAnim = animMatch[1].toLowerCase();
+                        const tag = animMatch[1].toLowerCase();
+                        if (tag === 'wipe') isWipe = true;
+                        else if (tag === 'small') { /* handled by content check below */ }
+                        else customAnim = tag;
                         text = text.replace(animMatch[0], '');
+                    }
+
+                    // FEATURE 3: {small} text {/small} support
+                    if (text.includes('{small}')) {
+                        isSmall = true;
+                        text = text.replace('{small}', '');
+                    }
+                    if (text.includes('{/small}')) {
+                        isSmall = true;
+                        text = text.replace('{/small}', '');
+                    }
+
+                    // FEATURE 5: [shape=type|color] parsing
+                    const shapeMatch = text.match(/\[shape=([a-z]+)\|([^\]]+)\]/i);
+                    if (shapeMatch) {
+                        isShape = true;
+                        shapeType = shapeMatch[1];
+                        shapeColor = shapeMatch[2];
+                        isSilent = true; // Don't render as text
+                        text = '';
                     }
 
                     const imgMatch = text.match(/^([^\[\(\{]*?)[\(\[\{](.*?)[\)\]\}]$/);
@@ -1925,10 +2542,15 @@
                     let cleanText = text; // FIXED: Changed const to let
                     let width = 0;
 
-                    if (cleanText) {
-                        width += ctx.measureText(cleanText + " ").width / SCALE;
-                        if (isHuge) width *= 1.4;
-                        else if (isHighlight) width *= 1.15;
+                    if (cleanText || isShape) {
+                        if (isShape) {
+                            width += 40; // Default width for inline shape
+                        } else {
+                            width += ctx.measureText(cleanText + " ").width / SCALE;
+                            if (isSmall) width = 1; // FEATURE 3: Zero width for sub-label words to stack with next word
+                            else if (isHuge) width *= 1.4;
+                            else if (isHighlight) width *= 1.15;
+                        }
                     }
 
                     let imgSize = 0; let hasMedia = false;
@@ -1961,7 +2583,8 @@
                         cleanText, imgKey, annotation, width, imgSize, hasMedia,
                         isHighlight, isHuge, isSilent, isGap, isWipe, isPinned, isCenterBroll,
                         bgChange: currentBgChange, customAnim,
-                        layoutMode, sizeMultiplier  // Store for rendering
+                        layoutMode, sizeMultiplier,
+                        isSmall, isShape, shapeType, shapeColor  // FEATURE 3 + 5: New properties
                     });
 
                     currentW += width; if (hasMedia) currentLineHasMedia = true;
@@ -1997,6 +2620,7 @@
         function buildProPhrases(timeline) {
             STATE.proPhrases = [];
             let curPhrase = { startTime: 0, endTime: 0, words: [] };
+            const maxWords = STATE.pacing || 3;
 
             timeline.forEach((w, i) => {
                 if (w.type === 'break') return;
@@ -2004,7 +2628,8 @@
                 curPhrase.words.push(w);
                 curPhrase.endTime = w.endTime;
 
-                if (curPhrase.words.length >= 4 || w.item.cleanText.match(/[.!?]$/) || i === timeline.length - 1) {
+                const hasPunctuation = w.item.cleanText.match(/[.!?]$/);
+                if (curPhrase.words.length >= maxWords || hasPunctuation || i === timeline.length - 1) {
                     STATE.proPhrases.push({ ...curPhrase });
                     curPhrase = { startTime: 0, endTime: 0, words: [] };
                 }
@@ -2014,15 +2639,22 @@
         // --- PREVIEW / PLAYBACK ---
         function togglePreview() { STATE.isPlaying ? stopPreview() : startPreview(); }
 
-        async function startPreview() {
+        async function startPreview(startingSceneIndex = null) {
             // SYNC CHECK: If in Story Mode, force update of script
             if (STATE.editorMode === 'story') compileStoryToScript();
 
             stopPreview();
             const btn = document.getElementById('playBtn'); btn.innerHTML = '<div class="w-3 h-3 border-2 border-black border-t-transparent rounded-full animate-spin"></div> Starting...';
             document.body.style.cursor = 'wait';
-            await new Promise(r => setTimeout(r, 100));
+
+            // Give Chrome's TTS engine 300ms to completely flush the previous canceled utterance queue
+            await new Promise(r => setTimeout(r, 300));
             await document.fonts.ready;
+
+            // Initialization for Pro Animation
+            STATE.pacing = parseInt(document.getElementById('pacingSlider').value) || 3;
+            STATE.proAnimation = document.getElementById('animSelectPro').value;
+            STATE.animation = document.getElementById('animSelectClassic').value;
 
             STATE.baseBgType = STATE.bgType;
             STATE.baseBgValue = STATE.bgValue;
@@ -2038,8 +2670,10 @@
             STATE.isPlaying = true;
 
             if (STATE.voiceMode === 'rec' && STATE.recMode === 'scene') {
-                playSceneSequence(0);
+                playSceneSequence(startingSceneIndex || 0);
             } else if (STATE.voiceMode === 'eleven' || STATE.voiceMode === 'magic' || (STATE.voiceMode === 'rec' && STATE.recMode === 'continuous') || STATE.voiceMode === 'upload') {
+                // If starting from a later scene in continuous mode, we'd need to seek. 
+                // For now, simplicity: continuous always starts from beginning.
                 playContinuous();
             } else {
                 playTTSSequence(text);
@@ -2060,6 +2694,30 @@
                     stopPreview();
                 }
             }, 2500);
+        }
+
+        function updatePacing(val) {
+            const labels = ["", "1 Word", "2 Words", "Phrase (3)", "Short (4)", "Medium (5)", "Long (6)"];
+            document.getElementById('pacingValue').innerText = labels[val] || val;
+        }
+
+        function applyViralPreset() {
+            setAppMode('pro');
+            setFormat('9:16');
+            updateColor('high', '#ffea00'); // Viral Yellow
+            document.getElementById('fontSizeSlider').value = 56;
+            updateFontSize(56);
+            document.getElementById('fontSelect').value = 'Poppins';
+            document.getElementById('animSelectPro').value = 'hormozi';
+            document.getElementById('pacingSlider').value = 1;
+            updatePacing(1);
+
+            // Texture upgrade
+            document.getElementById('textureSelect').value = 'noise';
+            updateTexture();
+
+            alert("🚀 Super Viral Preset Applied!\n• Pro Mode: ON\n• Pacing: 1 Word (Ultra Fast)\n• Font: Poppins Bold\n• Color: Yellow Highlights\n• Overlay: Cinematic Noise");
+            renderStoryboard();
         }
 
         async function playContinuous() {
@@ -2390,7 +3048,11 @@
         }
 
         function stopPreview() {
+            // Un-stick Chromium TTS engine (famous bug where cancel hangs if not paused first)
+            window.speechSynthesis.pause();
+            window.speechSynthesis.resume();
             window.speechSynthesis.cancel();
+
             if (STATE.currentAudio) { STATE.currentAudio.pause(); STATE.currentAudio = null; }
             if (STATE.animTimer) { clearInterval(STATE.animTimer); cancelAnimationFrame(STATE.animTimer); }
 
@@ -2413,6 +3075,10 @@
 
         function resetUI() {
             document.getElementById('playBtn').innerHTML = '<i data-lucide="play" class="w-3 h-3"></i> PREVIEW';
+            const progressBar = document.getElementById('previewProgressBar');
+            const progressFill = document.getElementById('previewProgressFill');
+            if (progressBar) progressBar.classList.add('hidden');
+            if (progressFill) progressFill.style.width = '0%';
             document.body.style.cursor = 'default'; lucide.createIcons();
             ['sfxPop', 'sfxWhoosh', 'sfxClick'].forEach(id => { const a = document.getElementById(id); if (a) { a.pause(); a.currentTime = 0; } });
         }
@@ -2475,6 +3141,7 @@
                 document.getElementById('fmtCustom').classList.add('active-format');
                 document.getElementById('fmtCustom').innerText = `⚙️ ${input}`;
 
+                syncFontSizeUI();
                 resizeCanvas();
             } else {
                 alert("Please enter a valid format like 16:9");
@@ -2563,26 +3230,68 @@
                     ctx.font = `900 ${STATE.format.fontSize}px '${this.font}'`;
                     ctx.textBaseline = "middle";
 
-                    if (this.data.isHighlight || this.data.isHuge) {
-                        ctx.fillStyle = STATE.colors.high;
-                        ctx.shadowColor = STATE.colors.high;
-                        ctx.shadowBlur = 15;
+                    if (this.data.isSmall) {
+                        ctx.font = `italic 900 ${STATE.format.fontSize * 0.6}px '${this.font}'`;
+                        ctx.translate(0, -STATE.format.fontSize * 0.8); // Shift sub-label up
                     } else {
-                        ctx.fillStyle = STATE.colors.main;
-                        ctx.shadowColor = "rgba(0,0,0,0.5)";
+                        ctx.font = `900 ${STATE.format.fontSize}px '${this.font}'`;
+                    }
+
+                    let renderHighColor = STATE.colors.high;
+                    if (this.data.isHighlight || this.data.isHuge) {
+                        const palette = [STATE.colors.high, '#ffea00', '#00ffcc', '#ff00ff'];
+                        const hash = (this.data.cleanText.length * 7 + (this.data.x || 1)) % 100;
+                        renderHighColor = palette[Math.floor(hash) % palette.length];
+                    }
+
+                    // FEATURE 4: Apply Global Text Style (Sticker, Bubble, Glow)
+                    const styleResult = applyTextStyle(ctx, this.data.cleanText,
+                        (this.data.isHighlight || this.data.isHuge) ? renderHighColor : STATE.colors.main,
+                        STATE.textStyle
+                    );
+                    const fillColor = styleResult?.fillColor || (this.data.isHighlight || this.data.isHuge ? renderHighColor : STATE.colors.main);
+
+                    if (this.data.isHighlight || this.data.isHuge && STATE.textStyle === 'normal') {
+                        ctx.fillStyle = renderHighColor;
+                        ctx.shadowColor = "rgba(0,0,0,0.8)";
                         ctx.shadowBlur = 10;
-                    }
+                        ctx.shadowOffsetY = 6;
 
-                    ctx.shadowOffsetY = 4;
-
-                    if (STATE.bgType !== 'color' || this.data.isHighlight || this.data.isHuge) {
-                        ctx.strokeStyle = "black";
-                        ctx.lineWidth = 4;
-                        ctx.lineJoin = "round";
+                        // Inner Glow effect via secondary stroke
+                        ctx.strokeStyle = "white";
+                        ctx.lineWidth = 1;
                         ctx.strokeText(this.data.cleanText, 0, 0);
+                    } else if (STATE.textStyle === 'normal') {
+                        ctx.fillStyle = STATE.colors.main;
+                        ctx.shadowColor = "rgba(0,0,0,0.6)";
+                        ctx.shadowBlur = 8;
+                        ctx.shadowOffsetY = 4;
+                    } else {
+                        ctx.fillStyle = fillColor;
                     }
 
-                    ctx.fillText(this.data.cleanText, 0, 0);
+                    // Render shapes for Feature 5
+                    if (this.data.isShape) {
+                        drawInlineShape(ctx, this.data.shapeType, this.data.shapeColor, 0, 0, STATE.format.fontSize);
+                    } else {
+                        // Regular text rendering with safe scaling
+                        let measured = ctx.measureText(this.data.cleanText).width;
+                        let capW = STATE.format.w - (STATE.format.pad * 2);
+                        if (measured > capW) {
+                            let s = capW / measured;
+                            ctx.scale(s, s);
+                        }
+
+                        if (STATE.textStyle === 'normal') {
+                            if (STATE.bgType !== 'color' || this.data.isHighlight || this.data.isHuge) {
+                                ctx.strokeStyle = "black";
+                                ctx.lineWidth = 4;
+                                ctx.lineJoin = "round";
+                                ctx.strokeText(this.data.cleanText, 0, 0);
+                            }
+                        }
+                        ctx.fillText(this.data.cleanText, 0, 0);
+                    }
                     ctx.shadowColor = "transparent";
                 }
                 if (this.data.imgKey && STATE.assets[this.data.imgKey] && !this.data.isPinned && !this.data.isCenterBroll) {
@@ -2733,20 +3442,43 @@
                     if (skewX) ctx.transform(1, 0, skewX, 1, 0, 0);
                     if (blur) ctx.filter = `blur(${blur}px)`;
 
+                    // CYCLING HIGHLIGHT PALETTE FOR VIRAL LOOK
+                    let renderHighColor = STATE.colors.high;
+                    if (isHighlight) {
+                        const palette = [STATE.colors.high, '#ffea00', '#00ffcc', '#ff00ff'];
+                        const hash = (w.item.cleanText.length * 7 + w.time) % 100;
+                        renderHighColor = palette[Math.floor(hash) % palette.length];
+                    }
+
                     if (isHighlight && STATE.proAnimation === 'marker') {
-                        ctx.fillStyle = STATE.colors.high;
+                        ctx.fillStyle = renderHighColor;
                         ctx.beginPath();
                         ctx.roundRect(-rawWidth / 2 - 5, -STATE.format.fontSize / 2 - 8, rawWidth + 10, STATE.format.fontSize + 16, 6);
                         ctx.fill();
                         ctx.fillStyle = "#ffffff";
                     } else {
-                        ctx.fillStyle = isHighlight ? STATE.colors.high : STATE.colors.main;
+                        ctx.fillStyle = isHighlight ? renderHighColor : STATE.colors.main;
                     }
 
                     ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowBlur = 10; ctx.shadowOffsetY = 4;
                     ctx.strokeStyle = "black"; ctx.lineWidth = 4; ctx.lineJoin = "round";
 
-                    if (!w.item.isSilent) {
+                    // FEATURE 3 + 5: Sub-labels and Shapes in Pro Engine
+                    if (w.item.isSmall) {
+                        ctx.font = `italic 900 ${STATE.format.fontSize * 0.6}px '${document.getElementById('fontSelect').value}'`;
+                        ctx.translate(20, -STATE.format.fontSize * 0.8);
+                    }
+
+                    if (w.item.isShape) {
+                        drawInlineShape(ctx, w.item.shapeType, w.item.shapeColor, -20, 0, STATE.format.fontSize);
+                    } else if (!w.item.isSilent) {
+                        // FEATURE 4: Text Styles in Pro Engine
+                        const styleResult = applyTextStyle(ctx, w.item.cleanText,
+                            isHighlight ? renderHighColor : STATE.colors.main,
+                            STATE.textStyle
+                        );
+                        if (styleResult?.fillColor) ctx.fillStyle = styleResult.fillColor;
+
                         if (doLiquid) {
                             ctx.fillStyle = "rgba(255,255,255,0.2)";
                             ctx.fillText(w.item.cleanText, -rawWidth / 2 - imgSize / 2, 0);
@@ -2755,18 +3487,47 @@
                             ctx.rect(-rawWidth / 2 - imgSize / 2 - 5, -STATE.format.fontSize, (rawWidth + imgSize + 10) * progress, STATE.format.fontSize * 2);
                             ctx.clip();
                             ctx.fillStyle = isHighlight ? STATE.colors.high : STATE.colors.main;
+
+                            // PRO SAFE SCALING
+                            let capW = STATE.format.w - 40;
+                            if (rawWidth > capW) { let s = capW / rawWidth; ctx.scale(s, s); }
+
                             ctx.strokeText(w.item.cleanText, -rawWidth / 2 - imgSize / 2, 0);
                             ctx.fillText(w.item.cleanText, -rawWidth / 2 - imgSize / 2, 0);
                             ctx.restore();
                         } else if (doRGB) {
                             const glitchOffset = (0.4 - progress) * 25 * Math.random();
                             ctx.globalCompositeOperation = "screen";
+
+                            // PRO SAFE SCALING
+                            let capW = STATE.format.w - 40;
+                            if (rawWidth > capW) { let s = capW / rawWidth; ctx.scale(s, s); }
+
                             ctx.fillStyle = "cyan"; ctx.fillText(w.item.cleanText, -rawWidth / 2 - imgSize / 2 - glitchOffset, 0);
                             ctx.fillStyle = "red"; ctx.fillText(w.item.cleanText, -rawWidth / 2 - imgSize / 2 + glitchOffset, 0);
                             ctx.globalCompositeOperation = "source-over";
                             ctx.fillStyle = "#ffffff"; ctx.fillText(w.item.cleanText, -rawWidth / 2 - imgSize / 2, 0);
                         } else {
+                            // PRO SAFE SCALING
+                            let capW = STATE.format.w - 40;
+                            if (rawWidth > capW) { let s = capW / rawWidth; ctx.scale(s, s); }
+
+                            // PREMIUM VIRAL SHADOW STACK
+                            ctx.shadowColor = "black";
+                            ctx.shadowBlur = 12;
+                            ctx.shadowOffsetY = 8;
+
                             ctx.strokeText(w.item.cleanText, -rawWidth / 2 - imgSize / 2, 0);
+
+                            // Add extra "pop" border for highlights
+                            if (isHighlight) {
+                                ctx.strokeStyle = "rgba(255,255,255,0.4)";
+                                ctx.lineWidth = 1.5;
+                                ctx.strokeText(w.item.cleanText, -rawWidth / 2 - imgSize / 2, 0);
+                                ctx.shadowBlur = 20;
+                                ctx.shadowColor = renderHighColor;
+                            }
+
                             ctx.fillText(w.item.cleanText, -rawWidth / 2 - imgSize / 2, 0);
                         }
                     }
@@ -2817,8 +3578,8 @@
 
             // CAMERA PAN & SHAKE FX (PRO MODE)
             if (STATE.appMode === 'pro' && STATE.isPlaying) {
-                STATE.globalZoom += 0.0004;
-                const zoom = 1 + STATE.globalZoom;
+                STATE.globalZoom += 0.0006; // Dynamic Ken Burns pop
+                const zoom = 1 + STATE.globalZoom + (Math.sin(performance.now() / 1000) * 0.01);
                 ctx.translate(canvas.width / 2, canvas.height / 2);
                 ctx.scale(zoom, zoom);
                 ctx.translate(-canvas.width / 2, -canvas.height / 2);
@@ -2974,6 +3735,14 @@
 
             STATE.particles.forEach((p, i) => { p.update(); p.draw(ctx); if (p.life <= 0) STATE.particles.splice(i, 1); });
 
+            // FEATURE 2: DRAW MASCOT (always on top, last layer)
+            drawMascot(ctx);
+
+            const progressBar = document.getElementById('previewProgressBar');
+            const progressFill = document.getElementById('previewProgressFill');
+            if (STATE.isPlaying && progressFill) progressFill.style.width = (STATE.playbackProgress || 0) + '%';
+            if (progressBar) progressBar.classList.toggle('hidden', !STATE.isPlaying);
+
             ctx.restore();
             requestAnimationFrame(loop);
         }
@@ -2998,8 +3767,22 @@
                 ['fmt916', 'fmt43', 'fmt11', 'fmtCustom'].forEach(id => document.getElementById(id).classList.remove('active-format'));
                 document.getElementById('fmt' + fmt.replace(':', '')).classList.add('active-format');
                 document.getElementById('fmtCustom').innerText = '⚙️ Custom';
+                syncFontSizeUI();
                 resizeCanvas();
             }
+        }
+
+        function updateFontSize(v) {
+            const n = Math.max(12, Math.min(120, parseInt(v, 10) || 40));
+            STATE.format.fontSize = n;
+            syncFontSizeUI();
+        }
+        function setFontSizePreset(px) { updateFontSize(px); }
+        function syncFontSizeUI() {
+            const slider = document.getElementById('fontSizeSlider');
+            const label = document.getElementById('fontSizeValue');
+            if (slider) slider.value = STATE.format.fontSize;
+            if (label) label.textContent = STATE.format.fontSize + 'px';
         }
 
         function setBackground(t, v) {
@@ -3021,8 +3804,10 @@
         function updateColor(t, v) { STATE.colors[t] = v; document.getElementById(t === 'main' ? 'mainColorPreview' : 'highColorPreview').style.backgroundColor = v; }
 
         async function handleAssetUpload(i) {
-            const f = i.files[0], k = document.getElementById('assetName').value.trim().toLowerCase();
-            if (f && k) {
+            const f = i.files[0];
+            let k = document.getElementById('assetName').value.trim().toLowerCase().replace(/\s+/g, '_');
+            if (!k) k = 'asset_' + Date.now();
+            if (f) {
                 if (f.type.startsWith('video/')) {
                     STATE.assets[k] = URL.createObjectURL(f);
                     STATE.assetTypes[k] = 'video';
@@ -3036,6 +3821,7 @@
                         v.style.display = 'none'; v.preload = 'auto';
                         document.body.appendChild(v);
                     }
+                    document.getElementById('assetName').value = k;
                     renderAssets();
                 } else {
                     const r = new FileReader();
@@ -3043,6 +3829,7 @@
                         STATE.assets[k] = e.target.result;
                         STATE.assetTypes[k] = 'image';
                         STATE.imageCache[k] = null;
+                        document.getElementById('assetName').value = k;
                         renderAssets();
                         saveAssets();
                     };
@@ -3295,6 +4082,122 @@
                 };
 
             }, 500);
+        }
+
+        // --- AI SCRIPT GENERATOR LOGIC ---
+        function toggleAiApiSettings() {
+            const val = document.getElementById('aiProvider').value;
+            const provider = val.includes(':') ? val.split(':')[0] : val;
+            const key = localStorage.getItem(provider + '_key') || '';
+            document.getElementById('aiApiKey').value = key;
+        }
+
+        function saveAiKey() {
+            const val = document.getElementById('aiProvider').value;
+            const provider = val.includes(':') ? val.split(':')[0] : val;
+            const key = document.getElementById('aiApiKey').value.trim();
+            if (key) {
+                localStorage.setItem(provider + '_key', key);
+                alert(provider.toUpperCase() + " API Key saved securely in your browser.");
+            } else {
+                alert("Please enter a valid API Key.");
+            }
+        }
+
+        async function generateAiScript(isRephrase = false) {
+            const val = document.getElementById('aiProvider').value;
+            const provider = val.includes(':') ? val.split(':')[0] : val;
+            const modelName = val.includes(':') ? val.split(':')[1] : (provider === 'gemini' ? 'gemini-2.0-flash' : 'llama-3.1-8b-instant');
+
+            const key = localStorage.getItem(provider + '_key');
+            let promptText = document.getElementById('aiPrompt').value.trim();
+            const btn = isRephrase ? document.getElementById('aiRephraseBtn') : document.getElementById('aiGenBtn');
+            const originalBtnHtml = btn.innerHTML;
+
+            if (!key) return alert(`Please save your ${provider.toUpperCase()} API Key first.`);
+
+            let finalPrompt = "";
+            let sysPrompt = "You are an expert social media script writer optimizing for viral kinetic typography reels (Hormozi / Captions app style). Output ONLY the raw HTML-like script text. " +
+                "Rules:\n" +
+                "1. EXTREMELY IMPORTANT: Write a MAXIMUM of 1 to 3 words per line. Break sentences dynamically into extremely short fragments.\n" +
+                "2. Wrap important/emotional words in *single asterisks* to highlight them, or **double asterisks** to make them huge.\n" +
+                "3. Occasionally insert relevant emojis at the end of lines.\n" +
+                "4. Use background tags like [bg=dark] or alignment tags like [top] at the start of a scene line where appropriate.\n" +
+                "5. Create a punchy, engaging, viral script. No meta-chat, no markdown code blocks.";
+
+            if (isRephrase) {
+                const existingScript = document.getElementById('scriptInput').value.trim();
+                if (!existingScript) return alert("Type your plain text script in the text box below first! The AI will rephrase and auto-format it.");
+                finalPrompt = `Take the following user script, make it punchier for a viral reel, and automatically inject all the *highlight*, **huge** modifiers, and emojis so it renders beautifully in a kinetic typography engine. FORCE LINE BREAKS SO EACH LINE ONLY HAS 1 to 3 WORDS MAX! \n\nUser Script:\n${existingScript}`;
+            } else {
+                if (!promptText) promptText = "Give me a 15-second motivational hook. Use [bg=dark], [=broll], and *emphasis* formatting tags.";
+                finalPrompt = promptText + " (Make absolutely sure it is 1 to 3 words per line!)";
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader" class="w-3 h-3 animate-spin"></i> Processing...';
+            lucide.createIcons();
+
+            try {
+                let generatedText = "";
+
+                if (provider === 'gemini') {
+                    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${key}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: sysPrompt + "\n\nUser Prompt: " + finalPrompt }] }]
+                        })
+                    });
+                    if (res.status === 429) {
+                        throw new Error("RATE LIMIT REACHED (429)! You have requested too many scripts too quickly. Please wait a minute before generating again.");
+                    }
+                    const data = await res.json();
+                    if (data.error) throw new Error(data.error.message);
+                    generatedText = data.candidates[0].content.parts[0].text;
+                } else if (provider === 'groq') {
+                    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                        method: "POST",
+                        headers: {
+                            "Authorization": `Bearer ${key}`,
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            model: modelName,
+                            messages: [
+                                { role: "system", content: sysPrompt },
+                                { role: "user", content: finalPrompt }
+                            ],
+                            temperature: 0.7
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.error) throw new Error(data.error.message);
+                    generatedText = data.choices[0].message.content;
+                }
+
+                // Remove accidental markdown formatting if present
+                generatedText = generatedText.replace(/^\s*```.*\n?/gm, '').replace(/```\s*$/g, '');
+
+                const scriptInput = document.getElementById('scriptInput');
+                if (isRephrase) {
+                    scriptInput.value = generatedText.trim();
+                } else {
+                    scriptInput.value += (scriptInput.value ? "\n\n" : "") + generatedText.trim();
+                }
+
+                if (STATE.editorMode === 'story') {
+                    importScriptToStoryboard();
+                }
+
+            } catch (err) {
+                console.error("AI Error Breakdown:", err);
+                alert("AI Generation Error:\n" + err.message + "\n\nCheck your internet, API key, and try again.");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalBtnHtml;
+                lucide.createIcons();
+            }
         }
 
         init();
